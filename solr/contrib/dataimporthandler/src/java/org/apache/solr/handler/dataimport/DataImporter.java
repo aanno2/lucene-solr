@@ -16,6 +16,7 @@
  */
 package org.apache.solr.handler.dataimport;
 
+import org.apache.lucene.util.NamedThreadFactory;
 import org.apache.solr.common.EmptyEntityResolver;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.ExecutorUtil;
@@ -510,6 +511,15 @@ public class DataImporter {
     }
     return result;
 
+  }
+
+  public ExecutorService getExecutorService() {
+    synchronized (this) {
+      if (executorService == null) {
+        executorService = ExecutorUtil.newMDCAwareFixedThreadPool(4, new NamedThreadFactory("DataImporter-"));
+      }
+    }
+    return executorService;
   }
 
   public DocBuilder getDocBuilder() {

@@ -454,8 +454,21 @@ public class DocBuilder {
           return;
         if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
         try {
-          boolean brk = buildSingleDocument(ctx, seenDocCount, vr, doc, pk, epw, isRoot, entitiesToDestroy);
-          if (brk) break;
+          Map<String, Object> arow = epw.nextRow();
+          if (isRoot) {
+            boolean brk = (arow == null);
+            final DocWrapper wrapper = doc;
+            dataImporter.getExecutorService().submit(new Runnable() {
+              @Override
+              public void run() {
+               buildSingleDocument(arow, ctx, seenDocCount, vr, wrapper, pk, epw, isRoot, entitiesToDestroy);
+              }
+            });
+            if (brk) break;
+          } else {
+            boolean brk = buildSingleDocument(arow, ctx, seenDocCount, vr, doc, pk, epw, isRoot, entitiesToDestroy);
+            if (brk) break;
+          }
           if (epw.getEntity().isDocRoot()) {
             if (stop.get())
               return;
@@ -514,7 +527,7 @@ public class DocBuilder {
   /**
    * @return true if 'break' on loop should be triggered
    */
-  private boolean buildSingleDocument(ContextImpl ctx, AtomicInteger seenDocCount, VariableResolver vr, DocWrapper doc, Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot, List<EntityProcessorWrapper> entitiesToDestroy) {
+  private boolean buildSingleDocument(Map<String, Object> arow, ContextImpl ctx, AtomicInteger seenDocCount, VariableResolver vr, DocWrapper doc, Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot, List<EntityProcessorWrapper> entitiesToDestroy) {
     int count = seenDocCount.incrementAndGet();
 
     if (count > reqParams.getStart()) {
@@ -535,7 +548,6 @@ public class DocBuilder {
       }
     }
 
-    Map<String, Object> arow = epw.nextRow();
     if (arow == null) {
       return true;
     }
