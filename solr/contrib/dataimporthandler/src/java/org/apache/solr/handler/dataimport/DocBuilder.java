@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -447,6 +448,7 @@ public class DocBuilder {
     }
 
     AtomicInteger seenDocCount = new AtomicInteger(0);
+    final boolean async = false && isRoot;
 
     try {
       while (true) {
@@ -455,13 +457,13 @@ public class DocBuilder {
         if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
         try {
           Map<String, Object> arow = epw.nextRow();
-          if (isRoot) {
+          if (async) {
             boolean brk = (arow == null);
             final DocWrapper wrapper = doc;
-            dataImporter.getExecutorService().submit(new Runnable() {
+            dataImporter.getExecutorService().submit(new Callable<Boolean>() {
               @Override
-              public void run() {
-               buildSingleDocument(arow, ctx, seenDocCount, vr, wrapper, pk, epw, isRoot, entitiesToDestroy);
+              public Boolean call() {
+                return buildSingleDocument(arow, ctx, seenDocCount, vr, wrapper, pk, epw, isRoot, entitiesToDestroy);
               }
             });
             if (brk) break;
@@ -510,7 +512,6 @@ public class DocBuilder {
           }
           throw new DataImportHandlerException(DataImportHandlerException.SEVERE, t);
         } finally {
-          dataImporter.shutdownExecutorAndAwaitTermination();
           if (verboseDebug) {
             getDebugLogger().log(DIHLogLevels.ROW_END, epw.getEntity().getName(), null);
             if (epw.getEntity().isDocRoot())
@@ -519,6 +520,9 @@ public class DocBuilder {
         }
       }
     } finally {
+      if (async) {
+        dataImporter.shutdownExecutorAndAwaitTermination();
+      }
       if (verboseDebug) {
         getDebugLogger().log(DIHLogLevels.END_ENTITY, null, null);
       }
