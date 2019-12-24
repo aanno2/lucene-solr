@@ -510,6 +510,7 @@ public class DocBuilder {
           }
           throw new DataImportHandlerException(DataImportHandlerException.SEVERE, t);
         } finally {
+          dataImporter.shutdownExecutorAndAwaitTermination();
           if (verboseDebug) {
             getDebugLogger().log(DIHLogLevels.ROW_END, epw.getEntity().getName(), null);
             if (epw.getEntity().isDocRoot())

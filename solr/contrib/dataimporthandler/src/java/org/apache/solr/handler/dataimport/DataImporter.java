@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -520,6 +521,21 @@ public class DataImporter {
       }
     }
     return executorService;
+  }
+
+  public void shutdownExecutorAndAwaitTermination() {
+    synchronized (this) {
+      if (executorService != null) {
+        executorService.shutdown();
+        try {
+          executorService.awaitTermination(1, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+          // do nothing
+        } finally {
+          executorService = null;
+        }
+      }
+    }
   }
 
   public DocBuilder getDocBuilder() {
