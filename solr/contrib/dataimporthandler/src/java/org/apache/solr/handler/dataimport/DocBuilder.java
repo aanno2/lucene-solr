@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -445,17 +446,15 @@ public class DocBuilder {
       getDebugLogger().log(DIHLogLevels.START_ENTITY, epw.getEntity().getName(), null);
     }
 
-    int seenDocCount = 0;
-
     try {
       while (true) {
         if (stop.get())
           return;
         if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
         try {
-          seenDocCount++;
+          int count = importStatistics.seenDocCount.incrementAndGet();
 
-          if (seenDocCount > reqParams.getStart()) {
+          if (count > reqParams.getStart()) {
             getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
           }
 
@@ -480,9 +479,9 @@ public class DocBuilder {
 
           // Support for start parameter in debug mode
           if (epw.getEntity().isDocRoot()) {
-            if (seenDocCount <= reqParams.getStart())
+            if (count <= reqParams.getStart())
               continue;
-            if (seenDocCount > reqParams.getStart() + reqParams.getRows()) {
+            if (count > reqParams.getStart() + reqParams.getRows()) {
               log.info("Indexing stopped at docCount = " + importStatistics.docCount);
               break;
             }
@@ -949,6 +948,8 @@ public class DocBuilder {
     public AtomicLong queryCount = new AtomicLong();
 
     public AtomicLong skipDocCount = new AtomicLong();
+
+    public AtomicInteger seenDocCount = new AtomicInteger();
 
     public Statistics add(Statistics stats) {
       this.docCount.addAndGet(stats.docCount.get());
