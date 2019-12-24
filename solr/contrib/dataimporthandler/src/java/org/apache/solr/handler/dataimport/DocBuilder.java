@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -445,7 +446,7 @@ public class DocBuilder {
       getDebugLogger().log(DIHLogLevels.START_ENTITY, epw.getEntity().getName(), null);
     }
 
-    int seenDocCount = 0;
+    AtomicInteger seenDocCount = new AtomicInteger(0);
 
     try {
       while (true) {
@@ -453,73 +454,8 @@ public class DocBuilder {
           return;
         if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
         try {
-          seenDocCount++;
-
-          if (seenDocCount > reqParams.getStart()) {
-            getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
-          }
-
-          if (verboseDebug && epw.getEntity().isDocRoot()) {
-            getDebugLogger().log(DIHLogLevels.START_DOC, epw.getEntity().getName(), null);
-          }
-          if (doc == null && epw.getEntity().isDocRoot()) {
-            doc = new DocWrapper();
-            ctx.setDoc(doc);
-            Entity e = epw.getEntity();
-            while (e.getParentEntity() != null) {
-              addFields(e.getParentEntity(), doc, (Map<String, Object>) vr
-                      .resolve(e.getParentEntity().getName()), vr);
-              e = e.getParentEntity();
-            }
-          }
-
-          Map<String, Object> arow = epw.nextRow();
-          if (arow == null) {
-            break;
-          }
-
-          // Support for start parameter in debug mode
-          if (epw.getEntity().isDocRoot()) {
-            if (seenDocCount <= reqParams.getStart())
-              continue;
-            if (seenDocCount > reqParams.getStart() + reqParams.getRows()) {
-              log.info("Indexing stopped at docCount = " + importStatistics.docCount);
-              break;
-            }
-          }
-
-          if (verboseDebug) {
-            getDebugLogger().log(DIHLogLevels.ENTITY_OUT, epw.getEntity().getName(), arow);
-          }
-          importStatistics.rowsCount.incrementAndGet();
-          
-          DocWrapper childDoc = null;
-          if (doc != null) {
-            if (epw.getEntity().isChild()) {
-              childDoc = new DocWrapper();
-              handleSpecialCommands(arow, childDoc);
-              addFields(epw.getEntity(), childDoc, arow, vr);
-              doc.addChildDocument(childDoc);
-            } else {
-              handleSpecialCommands(arow, doc);
-              vr.addNamespace(epw.getEntity().getName(), arow);
-              addFields(epw.getEntity(), doc, arow, vr);
-              vr.removeNamespace(epw.getEntity().getName());
-            }
-          }
-          if (epw.getEntity().getChildren() != null) {
-            vr.addNamespace(epw.getEntity().getName(), arow);
-            for (EntityProcessorWrapper child : epw.getChildren()) {
-              if (childDoc != null) {
-              buildDocument(vr, childDoc,
-                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
-              } else {
-                buildDocument(vr, doc,
-                    child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
-              }
-            }
-            vr.removeNamespace(epw.getEntity().getName());
-          }
+          boolean brk = buildSingleDocument(ctx, seenDocCount, vr, doc, pk, epw, isRoot, entitiesToDestroy);
+          if (brk) break;
           if (epw.getEntity().isDocRoot()) {
             if (stop.get())
               return;
@@ -573,6 +509,81 @@ public class DocBuilder {
         getDebugLogger().log(DIHLogLevels.END_ENTITY, null, null);
       }
     }
+  }
+
+  /**
+   * @return true if 'break' on loop should be triggered
+   */
+  private boolean buildSingleDocument(ContextImpl ctx, AtomicInteger seenDocCount, VariableResolver vr, DocWrapper doc, Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot, List<EntityProcessorWrapper> entitiesToDestroy) {
+    int count = seenDocCount.incrementAndGet();
+
+    if (count > reqParams.getStart()) {
+      getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
+    }
+
+    if (verboseDebug && epw.getEntity().isDocRoot()) {
+      getDebugLogger().log(DIHLogLevels.START_DOC, epw.getEntity().getName(), null);
+    }
+    if (doc == null && epw.getEntity().isDocRoot()) {
+      doc = new DocWrapper();
+      ctx.setDoc(doc);
+      Entity e = epw.getEntity();
+      while (e.getParentEntity() != null) {
+        addFields(e.getParentEntity(), doc, (Map<String, Object>) vr
+                .resolve(e.getParentEntity().getName()), vr);
+        e = e.getParentEntity();
+      }
+    }
+
+    Map<String, Object> arow = epw.nextRow();
+    if (arow == null) {
+      return true;
+    }
+
+    // Support for start parameter in debug mode
+    if (epw.getEntity().isDocRoot()) {
+      if (count <= reqParams.getStart())
+        // continue;
+        return false;
+      if (count > reqParams.getStart() + reqParams.getRows()) {
+        log.info("Indexing stopped at docCount = " + importStatistics.docCount);
+        return true;
+      }
+    }
+
+    if (verboseDebug) {
+      getDebugLogger().log(DIHLogLevels.ENTITY_OUT, epw.getEntity().getName(), arow);
+    }
+    importStatistics.rowsCount.incrementAndGet();
+
+    DocWrapper childDoc = null;
+    if (doc != null) {
+      if (epw.getEntity().isChild()) {
+        childDoc = new DocWrapper();
+        handleSpecialCommands(arow, childDoc);
+        addFields(epw.getEntity(), childDoc, arow, vr);
+        doc.addChildDocument(childDoc);
+      } else {
+        handleSpecialCommands(arow, doc);
+        vr.addNamespace(epw.getEntity().getName(), arow);
+        addFields(epw.getEntity(), doc, arow, vr);
+        vr.removeNamespace(epw.getEntity().getName());
+      }
+    }
+    if (epw.getEntity().getChildren() != null) {
+      vr.addNamespace(epw.getEntity().getName(), arow);
+      for (EntityProcessorWrapper child : epw.getChildren()) {
+        if (childDoc != null) {
+          buildDocument(vr, childDoc,
+                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+        } else {
+          buildDocument(vr, doc,
+                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+        }
+      }
+      vr.removeNamespace(epw.getEntity().getName());
+    }
+    return false;
   }
 
   static class DocWrapper extends SolrInputDocument {

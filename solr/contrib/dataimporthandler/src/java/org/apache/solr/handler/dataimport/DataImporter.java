@@ -18,6 +18,7 @@ package org.apache.solr.handler.dataimport;
 
 import org.apache.solr.common.EmptyEntityResolver;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.ExecutorUtil;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.util.SystemIdResolver;
@@ -58,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -89,7 +91,9 @@ public class DataImporter {
   private Map<String, Object> coreScopeSession = new ConcurrentHashMap<>();
   private ReentrantLock importLock = new ReentrantLock();
   private boolean isDeltaImportSupported = false;  
-  private final String handlerName;  
+  private final String handlerName;
+
+  private ExecutorService executorService = null;
 
   /**
    * Only for testing purposes
