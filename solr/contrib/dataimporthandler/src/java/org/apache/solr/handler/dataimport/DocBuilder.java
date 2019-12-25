@@ -527,18 +527,20 @@ public class DocBuilder {
                     vr.removeNamespace(entity.getName());
                   }
                   if (entity.isDocRoot()) {
-                    if (stop.get())
-                      return;
-                    if (!doc.isEmpty()) {
-                      boolean result = writer.upload(doc);
-                      if (reqParams.isDebug()) {
-                        reqParams.getDebugInfo().debugDocuments.add(doc);
-                      }
-                      doc = null;
-                      if (result) {
-                        importStatistics.docCount.incrementAndGet();
-                      } else {
-                        importStatistics.failedDocCount.incrementAndGet();
+                    if (stop.get()) {
+                      loop = false;
+                    } else {
+                      if (!doc.isEmpty()) {
+                        boolean result = writer.upload(doc);
+                        if (reqParams.isDebug()) {
+                          reqParams.getDebugInfo().debugDocuments.add(doc);
+                        }
+                        doc = null;
+                        if (result) {
+                          importStatistics.docCount.incrementAndGet();
+                        } else {
+                          importStatistics.failedDocCount.incrementAndGet();
+                        }
                       }
                     }
                   }
