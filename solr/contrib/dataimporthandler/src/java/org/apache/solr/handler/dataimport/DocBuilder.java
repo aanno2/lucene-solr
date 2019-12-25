@@ -464,22 +464,13 @@ public class DocBuilder {
           if (verboseDebug && entity.isDocRoot()) {
             getDebugLogger().log(DIHLogLevels.START_DOC, entity.getName(), null);
           }
-          if (doc == null && entity.isDocRoot()) {
-            doc = new DocWrapper();
-            ctx.setDoc(doc);
-            Entity e = entity;
-            while (e.getParentEntity() != null) {
-              addFields(e.getParentEntity(), doc, (Map<String, Object>) vr
-                      .resolve(e.getParentEntity().getName()), vr);
-              e = e.getParentEntity();
-            }
-          }
 
-          // Map<String, Object> arow = epw.nextRow();
+          doc = addParentFields(doc, entity, vr);
+          ctx.setDoc(doc);
+
           if (arow == null) {
             break;
           }
-          // entity = epw.getEntity();
 
           // Support for start parameter in debug mode
           if (entity.isDocRoot()) {
@@ -576,6 +567,20 @@ public class DocBuilder {
         getDebugLogger().log(DIHLogLevels.END_ENTITY, null, null);
       }
     }
+  }
+
+  private DocWrapper addParentFields(DocWrapper doc, Entity entity, VariableResolver vr) {
+    if (doc == null && entity.isDocRoot()) {
+      doc = new DocWrapper();
+      // ctx.setDoc(doc);
+      Entity e = entity;
+      while (e.getParentEntity() != null) {
+        addFields(e.getParentEntity(), doc, (Map<String, Object>) vr
+                .resolve(e.getParentEntity().getName()), vr);
+        e = e.getParentEntity();
+      }
+    }
+    return doc;
   }
 
   static class DocWrapper extends SolrInputDocument {
