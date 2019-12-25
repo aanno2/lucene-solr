@@ -449,9 +449,8 @@ public class DocBuilder {
     }
 
     try {
-      Map<String, Object> arow = null;
-      boolean loop = true;
-      while (loop) {
+      Map<String, Object> arow = epw.nextRow();
+      for (boolean loop = true; loop; arow = epw.nextRow()) {
         if (stop.get()) {
           loop = false;
         } else {
@@ -459,7 +458,6 @@ public class DocBuilder {
             loop = false;
           } else {
 
-            arow = epw.nextRow();
             int count = importStatistics.seenDocCount.incrementAndGet();
             Entity entity = epw.getEntity();
             try {
