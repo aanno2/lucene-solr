@@ -448,117 +448,121 @@ public class DocBuilder {
 
     try {
       Map<String, Object> arow = null;
-      while (true) {
-        if (stop.get())
-          return;
-        if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
+      boolean loop = true;
+      while (loop) {
+        if (stop.get()) {
+          loop = false;
+        } else {
+          if (importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
 
-        arow = epw.nextRow();
-        int count = importStatistics.seenDocCount.incrementAndGet();
-        Entity entity = epw.getEntity();
-        try {
-          if (count > reqParams.getStart()) {
-            getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
-          }
+          arow = epw.nextRow();
+          int count = importStatistics.seenDocCount.incrementAndGet();
+          Entity entity = epw.getEntity();
+          try {
+            if (count > reqParams.getStart()) {
+              getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
+            }
 
-          if (verboseDebug && entity.isDocRoot()) {
-            getDebugLogger().log(DIHLogLevels.START_DOC, entity.getName(), null);
-          }
+            if (verboseDebug && entity.isDocRoot()) {
+              getDebugLogger().log(DIHLogLevels.START_DOC, entity.getName(), null);
+            }
 
-          doc = addParentFields(doc, entity, vr);
-          ctx.setDoc(doc);
+            doc = addParentFields(doc, entity, vr);
+            ctx.setDoc(doc);
 
-          if (arow == null) {
-            break;
-          }
+            if (arow == null) {
+              loop = false;
+            } else {
 
-          // Support for start parameter in debug mode
-          if (entity.isDocRoot()) {
-            if (count <= reqParams.getStart())
+              // Support for start parameter in debug mode
+              if (entity.isDocRoot()) {
+                if (count <= reqParams.getStart())
+                  continue;
+                if (count > reqParams.getStart() + reqParams.getRows()) {
+                  log.info("Indexing stopped at docCount = " + importStatistics.docCount);
+                  break;
+                }
+              }
+
+              if (verboseDebug) {
+                getDebugLogger().log(DIHLogLevels.ENTITY_OUT, entity.getName(), arow);
+              }
+              importStatistics.rowsCount.incrementAndGet();
+
+              DocWrapper childDoc = null;
+              if (doc != null) {
+                if (entity.isChild()) {
+                  childDoc = new DocWrapper();
+                  handleSpecialCommands(arow, childDoc);
+                  addFields(entity, childDoc, arow, vr);
+                  doc.addChildDocument(childDoc);
+                } else {
+                  handleSpecialCommands(arow, doc);
+                  vr.addNamespace(entity.getName(), arow);
+                  addFields(entity, doc, arow, vr);
+                  vr.removeNamespace(entity.getName());
+                }
+              }
+              if (entity.getChildren() != null) {
+                vr.addNamespace(entity.getName(), arow);
+                for (EntityProcessorWrapper child : epw.getChildren()) {
+                  if (childDoc != null) {
+                    buildDocument(vr, childDoc,
+                            child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                  } else {
+                    buildDocument(vr, doc,
+                            child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                  }
+                }
+                vr.removeNamespace(entity.getName());
+              }
+              if (entity.isDocRoot()) {
+                if (stop.get())
+                  return;
+                if (!doc.isEmpty()) {
+                  boolean result = writer.upload(doc);
+                  if (reqParams.isDebug()) {
+                    reqParams.getDebugInfo().debugDocuments.add(doc);
+                  }
+                  doc = null;
+                  if (result) {
+                    importStatistics.docCount.incrementAndGet();
+                  } else {
+                    importStatistics.failedDocCount.incrementAndGet();
+                  }
+                }
+              }
+            }
+          } catch (DataImportHandlerException e) {
+            if (verboseDebug) {
+              getDebugLogger().log(DIHLogLevels.ENTITY_EXCEPTION, entity.getName(), e);
+            }
+            if (e.getErrCode() == DataImportHandlerException.SKIP_ROW) {
               continue;
-            if (count > reqParams.getStart() + reqParams.getRows()) {
-              log.info("Indexing stopped at docCount = " + importStatistics.docCount);
-              break;
             }
-          }
-
-          if (verboseDebug) {
-            getDebugLogger().log(DIHLogLevels.ENTITY_OUT, entity.getName(), arow);
-          }
-          importStatistics.rowsCount.incrementAndGet();
-          
-          DocWrapper childDoc = null;
-          if (doc != null) {
-            if (entity.isChild()) {
-              childDoc = new DocWrapper();
-              handleSpecialCommands(arow, childDoc);
-              addFields(entity, childDoc, arow, vr);
-              doc.addChildDocument(childDoc);
-            } else {
-              handleSpecialCommands(arow, doc);
-              vr.addNamespace(entity.getName(), arow);
-              addFields(entity, doc, arow, vr);
-              vr.removeNamespace(entity.getName());
-            }
-          }
-          if (entity.getChildren() != null) {
-            vr.addNamespace(entity.getName(), arow);
-            for (EntityProcessorWrapper child : epw.getChildren()) {
-              if (childDoc != null) {
-              buildDocument(vr, childDoc,
-                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+            if (isRoot) {
+              if (e.getErrCode() == DataImportHandlerException.SKIP) {
+                importStatistics.skipDocCount.getAndIncrement();
+                doc = null;
               } else {
-                buildDocument(vr, doc,
-                    child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                SolrException.log(log, "Exception while processing: "
+                        + entity.getName() + " document : " + doc, e);
               }
-            }
-            vr.removeNamespace(entity.getName());
-          }
-          if (entity.isDocRoot()) {
-            if (stop.get())
-              return;
-            if (!doc.isEmpty()) {
-              boolean result = writer.upload(doc);
-              if(reqParams.isDebug()) {
-                reqParams.getDebugInfo().debugDocuments.add(doc);
-              }
-              doc = null;
-              if (result){
-                importStatistics.docCount.incrementAndGet();
-              } else {
-                importStatistics.failedDocCount.incrementAndGet();
-              }
-            }
-          }
-        } catch (DataImportHandlerException e) {
-          if (verboseDebug) {
-            getDebugLogger().log(DIHLogLevels.ENTITY_EXCEPTION, entity.getName(), e);
-          }
-          if(e.getErrCode() == DataImportHandlerException.SKIP_ROW){
-            continue;
-          }
-          if (isRoot) {
-            if (e.getErrCode() == DataImportHandlerException.SKIP) {
-              importStatistics.skipDocCount.getAndIncrement();
-              doc = null;
-            } else {
-              SolrException.log(log, "Exception while processing: "
-                      + entity.getName() + " document : " + doc, e);
-            }
-            if (e.getErrCode() == DataImportHandlerException.SEVERE)
+              if (e.getErrCode() == DataImportHandlerException.SEVERE)
+                throw e;
+            } else
               throw e;
-          } else
-            throw e;
-        } catch (Exception t) {
-          if (verboseDebug) {
-            getDebugLogger().log(DIHLogLevels.ENTITY_EXCEPTION, entity.getName(), t);
-          }
-          throw new DataImportHandlerException(DataImportHandlerException.SEVERE, t);
-        } finally {
-          if (verboseDebug) {
-            getDebugLogger().log(DIHLogLevels.ROW_END, entity.getName(), null);
-            if (entity.isDocRoot())
-              getDebugLogger().log(DIHLogLevels.END_DOC, null, null);
+          } catch (Exception t) {
+            if (verboseDebug) {
+              getDebugLogger().log(DIHLogLevels.ENTITY_EXCEPTION, entity.getName(), t);
+            }
+            throw new DataImportHandlerException(DataImportHandlerException.SEVERE, t);
+          } finally {
+            if (verboseDebug) {
+              getDebugLogger().log(DIHLogLevels.ROW_END, entity.getName(), null);
+              if (entity.isDocRoot())
+                getDebugLogger().log(DIHLogLevels.END_DOC, null, null);
+            }
           }
         }
       }
