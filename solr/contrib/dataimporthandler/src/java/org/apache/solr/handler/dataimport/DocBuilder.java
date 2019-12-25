@@ -582,7 +582,8 @@ public class DocBuilder {
       for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw.nextRow(), true);
            bsd.loop; bsd = bsd.next(epw)) {
         ProcessRow processRow = new ProcessRow(bsd);
-        if (false && isRoot) {
+        if (isRoot) {
+          bsd.doc = null;
           dataImporter.getExecutorService().submit(processRow);
         } else {
           processRow.run();
