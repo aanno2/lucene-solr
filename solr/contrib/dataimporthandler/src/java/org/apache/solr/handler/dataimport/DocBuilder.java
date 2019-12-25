@@ -427,7 +427,7 @@ public class DocBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  private void buildDocument(VariableResolver vr, DocWrapper doc,
+  private void buildDocument(VariableResolver vr, final DocWrapper doc,
                              Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot,
                              ContextImpl parentCtx, Queue<EntityProcessorWrapper> entitiesToDestroy) {
 
@@ -469,8 +469,8 @@ public class DocBuilder {
                 getDebugLogger().log(DIHLogLevels.START_DOC, entity.getName(), null);
               }
 
-              doc = addParentFields(doc, entity, vr);
-              ctx.setDoc(doc);
+              bsd.doc = addParentFields(bsd.doc, entity, vr);
+              ctx.setDoc(bsd.doc);
 
               if (bsd.arow == null) {
                 bsd.loop = false;
@@ -490,16 +490,16 @@ public class DocBuilder {
                   importStatistics.rowsCount.incrementAndGet();
 
                   DocWrapper childDoc = null;
-                  if (doc != null) {
+                  if (bsd.doc != null) {
                     if (entity.isChild()) {
                       childDoc = new DocWrapper();
                       handleSpecialCommands(bsd.arow, childDoc);
                       addFields(entity, childDoc, bsd.arow, vr);
-                      doc.addChildDocument(childDoc);
+                      bsd.doc.addChildDocument(childDoc);
                     } else {
-                      handleSpecialCommands(bsd.arow, doc);
+                      handleSpecialCommands(bsd.arow, bsd.doc);
                       vr.addNamespace(entity.getName(), bsd.arow);
-                      addFields(entity, doc, bsd.arow, vr);
+                      addFields(entity, bsd.doc, bsd.arow, vr);
                       vr.removeNamespace(entity.getName());
                     }
                   }
@@ -510,7 +510,7 @@ public class DocBuilder {
                         buildDocument(vr, childDoc,
                                 child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
                       } else {
-                        buildDocument(vr, doc,
+                        buildDocument(vr, bsd.doc,
                                 child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
                       }
                     }
@@ -520,12 +520,12 @@ public class DocBuilder {
                     if (stop.get()) {
                       bsd.loop = false;
                     } else {
-                      if (!doc.isEmpty()) {
-                        boolean result = writer.upload(doc);
+                      if (!bsd.doc.isEmpty()) {
+                        boolean result = writer.upload(bsd.doc);
                         if (reqParams.isDebug()) {
-                          reqParams.getDebugInfo().debugDocuments.add(doc);
+                          reqParams.getDebugInfo().debugDocuments.add(bsd.doc);
                         }
-                        doc = null;
+                        bsd.doc = null;
                         if (result) {
                           importStatistics.docCount.incrementAndGet();
                         } else {
@@ -544,10 +544,10 @@ public class DocBuilder {
                 if (isRoot) {
                   if (e.getErrCode() == DataImportHandlerException.SKIP) {
                     importStatistics.skipDocCount.getAndIncrement();
-                    doc = null;
+                    bsd.doc = null;
                   } else {
                     SolrException.log(log, "Exception while processing: "
-                            + entity.getName() + " document : " + doc, e);
+                            + entity.getName() + " document : " + bsd.doc, e);
                   }
                   if (e.getErrCode() == DataImportHandlerException.SEVERE)
                     throw e;
