@@ -16,7 +16,6 @@
  */
 package org.apache.solr.handler.dataimport;
 
-import org.apache.solr.common.Callable;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.SolrCore;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -419,6 +419,7 @@ public class DocBuilder {
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
+      dataImporter.shutdownExecutorAndAwaitTermination();
       for (EntityProcessorWrapper entityWrapper : entitiesToDestroy) {
         entityWrapper.destroy();
       }
@@ -449,9 +450,16 @@ public class DocBuilder {
     }
 
     try {
-      class ProcessRow implements Callable<BuildSingleDoc> {
+      class ProcessRow implements Runnable {
+
+        private BuildSingleDoc bsd;
+
+        ProcessRow(BuildSingleDoc bsd) {
+          this.bsd = bsd;
+        }
+
         @Override
-        public void call(BuildSingleDoc bsd) {
+        public void run() {
           if (stop.get()) {
             bsd.loop = false;
           } else {
@@ -571,10 +579,14 @@ public class DocBuilder {
           }
         }
       }
-      ProcessRow processRow = new ProcessRow();
       for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw.nextRow(), true);
            bsd.loop; bsd = bsd.next(epw)) {
-        processRow.call(bsd);
+        ProcessRow processRow = new ProcessRow(bsd);
+        if (false && isRoot) {
+          dataImporter.getExecutorService().submit(processRow);
+        } else {
+          processRow.run();
+        }
       }
     } finally {
       if (verboseDebug) {
