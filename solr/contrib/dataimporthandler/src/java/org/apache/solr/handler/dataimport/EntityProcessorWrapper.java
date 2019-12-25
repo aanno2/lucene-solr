@@ -34,13 +34,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A Wrapper over {@link EntityProcessor} instance which performs transforms and handles multi-row outputs correctly.
  *
  * @since solr 1.4
  */
-public class EntityProcessorWrapper extends EntityProcessor {
+public class EntityProcessorWrapper implements EntityProcessor {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private EntityProcessor delegate;
@@ -186,69 +187,70 @@ public class EntityProcessorWrapper extends EntityProcessor {
   }
 
   @SuppressWarnings("unchecked")
-  protected Map<String, Object> applyTransformer(Map<String, Object> row) {
-    if(row == null) return null;
+  protected CompletableFuture<Map<String, Object>> applyTransformer(CompletableFuture<Map<String, Object>> fut) {
+    if(fut == null) return null;
     if (transformers == null)
       loadTransformers();
     if (transformers == Collections.EMPTY_LIST)
-      return row;
-    Map<String, Object> transformedRow = row;
-    List<Map<String, Object>> rows = null;
-    boolean stopTransform = checkStopTransform(row);
-    VariableResolver resolver = (VariableResolver) context.getVariableResolver();
-    for (Transformer t : transformers) {
-      if (stopTransform) break;
-      try {
-        if (rows != null) {
-          List<Map<String, Object>> tmpRows = new ArrayList<>();
-          for (Map<String, Object> map : rows) {
-            resolver.addNamespace(entityName, map);
-            Object o = t.transformRow(map, context);
+      return fut;
+    return fut.thenApply((Map<String, Object> row) -> {
+      Map<String, Object> transformedRow = row;
+      List<Map<String, Object>> rows = null;
+      boolean stopTransform = checkStopTransform(row);
+      VariableResolver resolver = (VariableResolver) context.getVariableResolver();
+      for (Transformer t : transformers) {
+        if (stopTransform) break;
+        try {
+          if (rows != null) {
+            List<Map<String, Object>> tmpRows = new ArrayList<>();
+            for (Map<String, Object> map : rows) {
+              resolver.addNamespace(entityName, map);
+              Object o = t.transformRow(map, context);
+              if (o == null)
+                continue;
+              if (o instanceof Map) {
+                Map oMap = (Map) o;
+                stopTransform = checkStopTransform(oMap);
+                tmpRows.add((Map) o);
+              } else if (o instanceof List) {
+                tmpRows.addAll((List) o);
+              } else {
+                log.error("Transformer must return Map<String, Object> or a List<Map<String, Object>>");
+              }
+            }
+            rows = tmpRows;
+          } else {
+            resolver.addNamespace(entityName, transformedRow);
+            Object o = t.transformRow(transformedRow, context);
             if (o == null)
-              continue;
+              return null;
             if (o instanceof Map) {
               Map oMap = (Map) o;
               stopTransform = checkStopTransform(oMap);
-              tmpRows.add((Map) o);
+              transformedRow = (Map) o;
             } else if (o instanceof List) {
-              tmpRows.addAll((List) o);
+              rows = (List) o;
             } else {
               log.error("Transformer must return Map<String, Object> or a List<Map<String, Object>>");
             }
           }
-          rows = tmpRows;
-        } else {
-          resolver.addNamespace(entityName, transformedRow);
-          Object o = t.transformRow(transformedRow, context);
-          if (o == null)
-            return null;
-          if (o instanceof Map) {
-            Map oMap = (Map) o;
-            stopTransform = checkStopTransform(oMap);
-            transformedRow = (Map) o;
-          } else if (o instanceof List) {
-            rows = (List) o;
-          } else {
-            log.error("Transformer must return Map<String, Object> or a List<Map<String, Object>>");
+        } catch (Exception e) {
+          log.warn("transformer threw error", e);
+          if (ABORT.equals(onError)) {
+            wrapAndThrow(SEVERE, e);
+          } else if (SKIP.equals(onError)) {
+            wrapAndThrow(DataImportHandlerException.SKIP, e);
           }
+          // onError = continue
         }
-      } catch (Exception e) {
-        log.warn("transformer threw error", e);
-        if (ABORT.equals(onError)) {
-          wrapAndThrow(SEVERE, e);
-        } else if (SKIP.equals(onError)) {
-          wrapAndThrow(DataImportHandlerException.SKIP, e);
-        }
-        // onError = continue
       }
-    }
-    if (rows == null) {
-      return transformedRow;
-    } else {
-      rowcache = rows;
-      return getFromRowCache();
-    }
-
+      if (rows == null) {
+        return transformedRow;
+      } else {
+        rowcache = rows;
+        return getFromRowCache();
+      }
+    });
   }
 
   private boolean checkStopTransform(Map oMap) {
@@ -257,12 +259,13 @@ public class EntityProcessorWrapper extends EntityProcessor {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
+  public CompletableFuture<Map<String, Object>> nextRow() {
     if (rowcache != null) {
-      return getFromRowCache();
+      // TODO (tp)
+      return CompletableFuture.completedFuture(getFromRowCache());
     }
     while (true) {
-      Map<String, Object> arow = null;
+      CompletableFuture<Map<String, Object>> arow = null;
       try {
         arow = delegate.nextRow();
       } catch (Exception e) {
@@ -287,24 +290,44 @@ public class EntityProcessorWrapper extends EntityProcessor {
   }
 
   @Override
-  public Map<String, Object> nextModifiedRowKey() {
-    Map<String, Object> row = delegate.nextModifiedRowKey();
+  public boolean hasNextRow() {
+    return delegate.hasNextRow();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextModifiedRowKey() {
+    CompletableFuture<Map<String, Object>> row = delegate.nextModifiedRowKey();
     row = applyTransformer(row);
     rowcache = null;
     return row;
   }
 
   @Override
-  public Map<String, Object> nextDeletedRowKey() {
-    Map<String, Object> row = delegate.nextDeletedRowKey();
+  public boolean hasNextModifiedRowKey() {
+    return delegate.hasNextModifiedRowKey();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextDeletedRowKey() {
+    CompletableFuture<Map<String, Object>> row = delegate.nextDeletedRowKey();
     row = applyTransformer(row);
     rowcache = null;
     return row;
   }
 
   @Override
-  public Map<String, Object> nextModifiedParentRowKey() {
+  public boolean hasNextDeletedRowKey() {
+    return delegate.hasNextDeletedRowKey();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextModifiedParentRowKey() {
     return delegate.nextModifiedParentRowKey();
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return delegate.hasNextModifiedParentRowKey();
   }
 
   @Override

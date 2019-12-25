@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * <p> Base class for all implementations of {@link EntityProcessor} </p> <p> Most implementations of {@link EntityProcessor}
@@ -33,7 +34,8 @@ import java.util.*;
  *
  * @since solr 1.3
  */
-public class EntityProcessorBase extends EntityProcessor {
+public abstract class EntityProcessorBase implements EntityProcessor {
+
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected boolean isFirstInit = true;
@@ -42,7 +44,7 @@ public class EntityProcessorBase extends EntityProcessor {
 
   protected Context context;
 
-  protected Iterator<Map<String, Object>> rowIterator;
+  protected Iterator<CompletableFuture<Map<String, Object>>> rowIterator;
 
   protected String query;  
   
@@ -95,18 +97,18 @@ public class EntityProcessorBase extends EntityProcessor {
         }
     }
 
-    @Override
-  public Map<String, Object> nextModifiedRowKey() {
+  @Override
+  public CompletableFuture<Map<String, Object>> nextModifiedRowKey() {
     return null;
   }
 
   @Override
-  public Map<String, Object> nextDeletedRowKey() {
+  public CompletableFuture<Map<String, Object>> nextDeletedRowKey() {
     return null;
   }
 
   @Override
-  public Map<String, Object> nextModifiedParentRowKey() {
+  public CompletableFuture<Map<String, Object>> nextModifiedParentRowKey() {
     return null;
   }
 
@@ -118,11 +120,11 @@ public class EntityProcessorBase extends EntityProcessor {
    *         null to signal end of rows
    */
   @Override
-  public Map<String, Object> nextRow() {
+  public CompletableFuture<Map<String, Object>> nextRow() {
     return null;// do not do anything
   }
-  
-  protected Map<String, Object> getNext() {
+
+  protected CompletableFuture<Map<String, Object>> getNext() {
     if(zipper!=null){
       return zipper.supplyNextChild(rowIterator);
     }else{
@@ -143,11 +145,39 @@ public class EntityProcessorBase extends EntityProcessor {
           return null;
         }
       } else  {
-        return cacheSupport.getCacheData(context, query, rowIterator);
+        return CompletableFuture.completedFuture(
+                cacheSupport.getCacheData(context, query, rowIterator));
       }  
     }
   }
 
+  protected boolean hasNext() {
+    if(zipper!=null){
+      // TODO (tp)
+      return zipper.supplyNextChild(rowIterator) != null;
+    }else{
+      if(cacheSupport==null) {
+        try {
+          if (rowIterator == null)
+            return false;
+          if (rowIterator.hasNext())
+            return rowIterator.hasNext();
+          query = null;
+          rowIterator = null;
+          return false;
+        } catch (Exception e) {
+          SolrException.log(log, "getNext() failed for query '" + query + "'", e);
+          query = null;
+          rowIterator = null;
+          wrapAndThrow(DataImportHandlerException.WARN, e);
+          return false;
+        }
+      } else  {
+        // TODO (tp)
+        return cacheSupport.getCacheData(context, query, rowIterator) != null;
+      }
+    }
+  }
 
   @Override
   public void destroy() {
@@ -158,7 +188,6 @@ public class EntityProcessorBase extends EntityProcessor {
     cacheSupport = null;
   }
 
-  
 
   public static final String TRANSFORMER = "transformer";
 

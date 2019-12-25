@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -160,8 +161,8 @@ public class XPathRecordReader {
    * @param r the stream reader
    * @return results a List of emitted records
    */
-  public List<Map<String, Object>> getAllRecords(Reader r) {
-    final List<Map<String, Object>> results = new ArrayList<>();
+  public List<CompletableFuture<Map<String, Object>>> getAllRecords(Reader r) {
+    final List<CompletableFuture<Map<String, Object>>> results = new ArrayList<>();
     streamRecords(r, (record, s) -> results.add(record));
     return results;
   }
@@ -233,7 +234,7 @@ public class XPathRecordReader {
      */
     private void parse(XMLStreamReader parser, 
                        Handler handler,
-                       Map<String, Object> values, 
+                       Map<String, Object> values,
                        Stack<Set<String>> stack, // lists of values to purge
                        boolean recordStarted
                        ) throws IOException, XMLStreamException {
@@ -585,16 +586,18 @@ public class XPathRecordReader {
      * records values. If a fields value is a List then they have to be
      * deep-copied for thread safety
      */
-    private static Map<String, Object> getDeepCopy(Map<String, Object> values) {
-      Map<String, Object> result = new HashMap<>();
-      for (Map.Entry<String, Object> entry : values.entrySet()) {
-        if (entry.getValue() instanceof List) {
-          result.put(entry.getKey(), new ArrayList((List) entry.getValue()));
-        } else {
-          result.put(entry.getKey(), entry.getValue());
+    private static CompletableFuture<Map<String, Object>> getDeepCopy(CompletableFuture<Map<String, Object>> fut) {
+      return fut.thenApply(values -> {
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+          if (entry.getValue() instanceof List) {
+            result.put(entry.getKey(), new ArrayList((List) entry.getValue()));
+          } else {
+            result.put(entry.getKey(), entry.getValue());
+          }
         }
-      }
-      return result;
+        return result;
+      });
     }
   } // end of class Node
 
@@ -661,7 +664,7 @@ public class XPathRecordReader {
      * If there is any change all parsing will be aborted and the Exception
      * is propagated up
      */
-    void handle(Map<String, Object> record, String xpath);
+    void handle(CompletableFuture<Map<String, Object>> record, String xpath);
   }
 
   private static final Pattern ATTRIB_PRESENT_WITHVAL = Pattern

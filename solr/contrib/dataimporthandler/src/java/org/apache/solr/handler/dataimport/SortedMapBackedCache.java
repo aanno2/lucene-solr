@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 
 public class SortedMapBackedCache implements DIHCache {
   private SortedMap<Object,List<Map<String,Object>>> theMap = null;
@@ -32,37 +33,40 @@ public class SortedMapBackedCache implements DIHCache {
   
   @SuppressWarnings("unchecked")
   @Override
-  public void add(Map<String,Object> rec) {
-    checkOpen(true);
-    checkReadOnly();
-    
-    if (rec == null || rec.size() == 0) {
-      return;
-    }
-    
-    if (primaryKeyName == null) {
-      primaryKeyName = rec.keySet().iterator().next();
-    }
-    
-    Object pk = rec.get(primaryKeyName);
-    if (pk instanceof Collection<?>) {
-      Collection<Object> c = (Collection<Object>) pk;
-      if (c.size() != 1) {
-        throw new RuntimeException(
-            "The primary key must have exactly 1 element.");
+  public void add(CompletableFuture<Map<String,Object>> fut) {
+    fut.thenAccept(rec -> {
+      checkOpen(true);
+      checkReadOnly();
+
+      if (rec == null || rec.size() == 0) {
+        return;
       }
-      pk = c.iterator().next();
-    }
-    //Rows with null keys are not added.
-    if(pk==null) {
+
+      if (primaryKeyName == null) {
+        primaryKeyName = rec.keySet().iterator().next();
+      }
+
+      Object pk = rec.get(primaryKeyName);
+      if (pk instanceof Collection<?>) {
+        Collection<Object> c = (Collection<Object>) pk;
+        if (c.size() != 1) {
+          throw new RuntimeException(
+                  "The primary key must have exactly 1 element.");
+        }
+        pk = c.iterator().next();
+      }
+      //Rows with null keys are not added.
+      if (pk == null) {
+        return;
+      }
+      List<Map<String, Object>> thisKeysRecs = theMap.get(pk);
+      if (thisKeysRecs == null) {
+        thisKeysRecs = new ArrayList<>();
+        theMap.put(pk, thisKeysRecs);
+      }
+      thisKeysRecs.add(rec);
       return;
-    }
-    List<Map<String,Object>> thisKeysRecs = theMap.get(pk);
-    if (thisKeysRecs == null) {
-      thisKeysRecs = new ArrayList<>();
-      theMap.put(pk, thisKeysRecs);
-    }
-    thisKeysRecs.add(rec);
+    });
   }
   
   private void checkOpen(boolean shouldItBe) {

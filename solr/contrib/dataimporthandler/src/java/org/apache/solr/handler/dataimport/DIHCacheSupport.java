@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
@@ -138,16 +139,16 @@ public class DIHCacheSupport {
    * </p>
    */
   public void populateCache(String query,
-      Iterator<Map<String,Object>> rowIterator) {
-    Map<String,Object> aRow = null;
+      Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
+    CompletableFuture<Map<String,Object>> aRow = null;
     DIHCache cache = queryVsCache.get(query);
     while ((aRow = getNextFromCache(query, rowIterator)) != null) {
       cache.add(aRow);
     }
   }
   
-  private Map<String,Object> getNextFromCache(String query,
-      Iterator<Map<String,Object>> rowIterator) {
+  private CompletableFuture<Map<String,Object>> getNextFromCache(String query,
+      Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
     try {
       if (rowIterator == null) return null;
       if (rowIterator.hasNext()) return rowIterator.next();
@@ -161,7 +162,7 @@ public class DIHCacheSupport {
   }
   
   public Map<String,Object> getCacheData(Context context, String query,
-      Iterator<Map<String,Object>> rowIterator) {
+                                         Iterator<CompletableFuture<Map<String, Object>>> rowIterator) {
     if (cacheDoKeyLookup) {
       return getIdCacheData(context, query, rowIterator);
     } else {
@@ -180,7 +181,7 @@ public class DIHCacheSupport {
    *         have been resolved
    */
   protected Map<String,Object> getIdCacheData(Context context, String query,
-      Iterator<Map<String,Object>> rowIterator) {
+      Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
     Object key = context.resolve(cacheForeignKey);
     if (key == null) {
       throw new DataImportHandlerException(DataImportHandlerException.WARN,
@@ -211,7 +212,7 @@ public class DIHCacheSupport {
    * @return the cached row corresponding to the given query
    */
   protected Map<String,Object> getSimpleCacheData(Context context,
-      String query, Iterator<Map<String,Object>> rowIterator) {
+      String query, Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
     if (dataSourceRowCache == null) {      
       DIHCache cache = queryVsCache.get(query);      
       if (cache == null) {        

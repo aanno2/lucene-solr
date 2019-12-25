@@ -46,6 +46,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.apache.solr.handler.dataimport.DataImportHandlerException.SEVERE;
 import static org.apache.solr.handler.dataimport.DataImportHandlerException.wrapAndThrow;
@@ -125,7 +126,7 @@ public class TikaEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
+  public CompletableFuture<Map<String, Object>> nextRow() {
     if(done) return null;
     Map<String, Object> row = new HashMap<>();
     DataSource<InputStream> dataSource = context.getDataSource();

@@ -26,6 +26,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * <p>An implementation of {@link EntityProcessor} which reads data from a url/file and give out a row which contains one String
@@ -43,34 +44,56 @@ public class PlainTextEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
+  public CompletableFuture<Map<String, Object>> nextRow() {
     if (ended) return null;
-    DataSource<Reader> ds = context.getDataSource();
-    String url = context.replaceTokens(context.getEntityAttribute(URL));
-    Reader r = null;
-    try {
-      r = ds.getData(url);
-    } catch (Exception e) {
-      wrapAndThrow(SEVERE, e, "Exception reading url : " + url);
-    }
-    StringWriter sw = new StringWriter();
-    char[] buf = new char[1024];
-    while (true) {
-      int len = 0;
+    return new CompletableFuture<Map<String, Object>>().completeAsync(() -> {
+      DataSource<Reader> ds = context.getDataSource();
+      String url = context.replaceTokens(context.getEntityAttribute(URL));
+      Reader r = null;
       try {
-        len = r.read(buf);
-      } catch (IOException e) {
-        IOUtils.closeQuietly(r);
+        r = ds.getData(url);
+      } catch (Exception e) {
         wrapAndThrow(SEVERE, e, "Exception reading url : " + url);
       }
-      if (len <= 0) break;
-      sw.append(new String(buf, 0, len));
-    }
-    Map<String, Object> row = new HashMap<>();
-    row.put(PLAIN_TEXT, sw.toString());
-    ended = true;
-    IOUtils.closeQuietly(r);
-    return row;
+      StringWriter sw = new StringWriter();
+      char[] buf = new char[1024];
+      while (true) {
+        int len = 0;
+        try {
+          len = r.read(buf);
+        } catch (IOException e) {
+          IOUtils.closeQuietly(r);
+          wrapAndThrow(SEVERE, e, "Exception reading url : " + url);
+        }
+        if (len <= 0) break;
+        sw.append(new String(buf, 0, len));
+      }
+      Map<String, Object> row = new HashMap<>();
+      row.put(PLAIN_TEXT, sw.toString());
+      ended = true;
+      IOUtils.closeQuietly(r);
+      return row;
+    });
+  }
+
+  @Override
+  public boolean hasNextRow() {
+    return !ended;
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
   }
 
   public static final String PLAIN_TEXT = "plainText";

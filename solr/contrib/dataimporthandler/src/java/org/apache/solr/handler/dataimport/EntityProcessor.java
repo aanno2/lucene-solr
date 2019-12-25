@@ -17,6 +17,8 @@
 package org.apache.solr.handler.dataimport;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -34,9 +36,9 @@ import java.util.Map;
  * <p>
  * <b>This API is experimental and may change in the future.</b>
  *
- * @since solr 1.3
+ * @since solr 8.3 (was abstract class since solr 1.3)
  */
-public abstract class EntityProcessor {
+public interface EntityProcessor extends AutoCloseable {
 
   /**
    * This method is called when it starts processing an entity. When it comes
@@ -46,7 +48,7 @@ public abstract class EntityProcessor {
    *
    * @param context The current context
    */
-  public abstract void init(Context context);
+  void init(Context context);
 
   /**
    * This method helps streaming the data for each row . The implementation
@@ -57,7 +59,9 @@ public abstract class EntityProcessor {
    *         is the value of that column. If there are no more rows to be
    *         returned, return 'null'
    */
-  public abstract Map<String, Object> nextRow();
+  CompletableFuture<Map<String, Object>> nextRow();
+
+  boolean hasNextRow();
 
   /**
    * This is used for delta-import. It gives the pks of the changed rows in this
@@ -65,7 +69,9 @@ public abstract class EntityProcessor {
    *
    * @return the pk vs value of all changed rows
    */
-  public abstract Map<String, Object> nextModifiedRowKey();
+  CompletableFuture<Map<String, Object>> nextModifiedRowKey();
+
+  boolean hasNextModifiedRowKey();
 
   /**
    * This is used during delta-import. It gives the primary keys of the rows
@@ -75,7 +81,9 @@ public abstract class EntityProcessor {
    *
    * @return the pk vs value of all changed rows
    */
-  public abstract Map<String, Object> nextDeletedRowKey();
+  CompletableFuture<Map<String, Object>> nextDeletedRowKey();
+
+  boolean hasNextDeletedRowKey();
 
   /**
    * This is used during delta-import. This gives the primary keys and their
@@ -84,13 +92,15 @@ public abstract class EntityProcessor {
    *
    * @return the pk vs value of all changed rows in the parent entity
    */
-  public abstract Map<String, Object> nextModifiedParentRowKey();
+  CompletableFuture<Map<String, Object>> nextModifiedParentRowKey();
+
+  boolean hasNextModifiedParentRowKey();
 
   /**
    * Invoked for each entity at the very end of the import to do any needed cleanup tasks.
    * 
    */
-  public abstract void destroy();
+  void destroy();
 
   /**
    * Invoked after the transformers are invoked. EntityProcessors can add, remove or modify values
@@ -99,7 +109,7 @@ public abstract class EntityProcessor {
    * @param r The transformed row
    * @since solr 1.4
    */
-  public void postTransform(Map<String, Object> r) {
+  default void postTransform(CompletableFuture<Map<String, Object>> r) {
   }
 
   /**
@@ -107,7 +117,7 @@ public abstract class EntityProcessor {
    *
    * @since solr 1.4
    */
-  public void close() {
+  default void close() {
     //no-op
   }
 }

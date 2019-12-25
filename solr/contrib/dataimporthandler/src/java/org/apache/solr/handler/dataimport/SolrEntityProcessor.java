@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.SolrClient;
@@ -132,7 +133,7 @@ public class SolrEntityProcessor extends EntityProcessorBase {
   }
   
   @Override
-  public Map<String,Object> nextRow() {
+  public CompletableFuture<Map<String,Object>> nextRow() {
     buildIterator();
     return getNext();
   }

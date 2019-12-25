@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +46,7 @@ import java.util.regex.Pattern;
 public class SqlEntityProcessor extends EntityProcessorBase {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  protected DataSource<Iterator<Map<String, Object>>> dataSource;
+  protected DataSource<Iterator<CompletableFuture<Map<String, Object>>>> dataSource;
 
   @Override
   @SuppressWarnings("unchecked")
@@ -67,7 +69,7 @@ public class SqlEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {    
+  public CompletableFuture<Map<String, Object>> nextRow() {
     if (rowIterator == null) {
       String q = getQuery();
       initQuery(context.replaceTokens(q));
@@ -76,7 +78,16 @@ public class SqlEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextModifiedRowKey() {
+  public boolean hasNextRow() {
+    if (rowIterator == null) {
+      String q = getQuery();
+      initQuery(context.replaceTokens(q));
+    }
+    return hasNext();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextModifiedRowKey() {
     if (rowIterator == null) {
       String deltaQuery = context.getEntityAttribute(DELTA_QUERY);
       if (deltaQuery == null)
@@ -87,7 +98,18 @@ public class SqlEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextDeletedRowKey() {
+  public boolean hasNextModifiedRowKey() {
+    if (rowIterator == null) {
+      String deltaQuery = context.getEntityAttribute(DELTA_QUERY);
+      if (deltaQuery == null)
+        return false;
+      initQuery(context.replaceTokens(deltaQuery));
+    }
+    return hasNext();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextDeletedRowKey() {
     if (rowIterator == null) {
       String deletedPkQuery = context.getEntityAttribute(DEL_PK_QUERY);
       if (deletedPkQuery == null)
@@ -98,7 +120,18 @@ public class SqlEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextModifiedParentRowKey() {
+  public boolean hasNextDeletedRowKey() {
+    if (rowIterator == null) {
+      String deletedPkQuery = context.getEntityAttribute(DEL_PK_QUERY);
+      if (deletedPkQuery == null)
+        return false;
+      initQuery(context.replaceTokens(deletedPkQuery));
+    }
+    return hasNext();
+  }
+
+  @Override
+  public CompletableFuture<Map<String, Object>> nextModifiedParentRowKey() {
     if (rowIterator == null) {
       String parentDeltaQuery = context.getEntityAttribute(PARENT_DELTA_QUERY);
       if (parentDeltaQuery == null)
@@ -108,6 +141,19 @@ public class SqlEntityProcessor extends EntityProcessorBase {
       initQuery(context.replaceTokens(parentDeltaQuery));
     }
     return getNext();
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    if (rowIterator == null) {
+      String parentDeltaQuery = context.getEntityAttribute(PARENT_DELTA_QUERY);
+      if (parentDeltaQuery == null)
+        return false;
+      log.info("Running parentDeltaQuery for Entity: "
+              + context.getEntityAttribute("name"));
+      initQuery(context.replaceTokens(parentDeltaQuery));
+    }
+    return hasNext();
   }
 
   public String getQuery() {

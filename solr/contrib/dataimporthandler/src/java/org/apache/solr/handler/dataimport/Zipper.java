@@ -19,6 +19,7 @@ package org.apache.solr.handler.dataimport;
 import java.lang.invoke.MethodHandles;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.solr.handler.dataimport.DIHCacheSupport.Relation;
 import org.slf4j.Logger;
@@ -37,8 +38,8 @@ class Zipper {
   @SuppressWarnings("rawtypes")
   private Comparable lastChildId;
   
-  private Iterator<Map<String,Object>> rowIterator;
-  private PeekingIterator<Map<String,Object>> peeker;
+  private Iterator<CompletableFuture<Map<String,Object>>> rowIterator;
+  private PeekingIterator<CompletableFuture<Map<String,Object>>> peeker;
   
   /** @return initialized zipper or null */
   public static Zipper createOrNull(Context context){
@@ -57,13 +58,14 @@ class Zipper {
   }
   
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public Map<String,Object> supplyNextChild(
-      Iterator<Map<String,Object>> rowIterator) {
+  public CompletableFuture<Map<String,Object>> supplyNextChild(
+      Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
     preparePeeker(rowIterator);
       
     while(peeker.hasNext()){
-      Map<String,Object> current = peeker.peek();
-      Comparable childId = (Comparable) current.get(relation.primaryKey);
+      CompletableFuture<Map<String,Object>> current = peeker.peek();
+      // ???
+      Comparable childId = (Comparable) current.get().get(relation.primaryKey);
       
       if(lastChildId!=null && lastChildId.compareTo(childId)>0){
         throw new IllegalArgumentException("expect increasing foreign keys for "+relation+
@@ -72,13 +74,13 @@ class Zipper {
       lastChildId = childId;
       int cmp = childId.compareTo(parentId);
       if(cmp==0){
-        Map<String,Object> child = peeker.next();
+        CompletableFuture<Map<String,Object>> child = peeker.next();
         assert child==current: "peeker should be right but "+current+" != " + child;
         log.trace("yeild child {} entry {}",relation, current);
         return child;// TODO it's for one->many for many->one it should be just peek() 
       }else{
         if(cmp<0){ // child belongs to 10th and parent is 20th, skip for the next one
-          Map<String,Object> child = peeker.next();
+          CompletableFuture<Map<String,Object>> child = peeker.next();
           assert child==current: "peeker should be right but "+current+" != " + child;
           log.trace("skip child {}, {} > {}",relation, parentId, childId);
         }else{ // child belongs to 20th and  parent is 10th, no more children, go to next parent
@@ -91,7 +93,7 @@ class Zipper {
     return null;
   }
 
-  private void preparePeeker(Iterator<Map<String,Object>> rowIterator) {
+  private void preparePeeker(Iterator<CompletableFuture<Map<String,Object>>> rowIterator) {
     if(this.rowIterator==null){
       this.rowIterator = rowIterator;
       peeker = Iterators.peekingIterator(rowIterator);

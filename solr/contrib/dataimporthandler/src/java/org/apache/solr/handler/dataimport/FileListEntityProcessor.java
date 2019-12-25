@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -206,10 +208,15 @@ public class FileListEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
-    if (rowIterator != null)
-      return getNext();
-    List<Map<String, Object>> fileDetails = new ArrayList<>();
+  public CompletableFuture<Map<String, Object>> nextRow() {
+    if (rowIterator == null) {
+      initializeRowInterator();
+    }
+    return getNext();
+  }
+
+  private void initializeRowInterator() {
+    List<CompletableFuture<Map<String, Object>>> fileDetails = new ArrayList<>();
     File dir = new File(baseDir);
 
     String dateStr = context.getEntityAttribute(NEWER_THAN);
@@ -225,10 +232,32 @@ public class FileListEntityProcessor extends EntityProcessorBase {
 
     getFolderFiles(dir, fileDetails);
     rowIterator = fileDetails.iterator();
-    return getNext();
   }
 
-  private void getFolderFiles(File dir, final List<Map<String, Object>> fileDetails) {
+  @Override
+  public boolean hasNextRow() {
+    if (rowIterator == null) {
+      initializeRowInterator();
+    }
+    return rowIterator.hasNext();
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
+  }
+
+  private void getFolderFiles(File dir, final List<CompletableFuture<Map<String, Object>>> fileDetails) {
     // Fetch an array of file objects that pass the filter, however the
     // returned array is never populated; accept() always returns false.
     // Rather we make use of the fileDetails array which is populated as
@@ -251,7 +280,7 @@ public class FileListEntityProcessor extends EntityProcessorBase {
     });
   }
 
-  private void addDetails(List<Map<String, Object>> files, File dir, String name) {
+  private void addDetails(List<CompletableFuture<Map<String, Object>>> files, File dir, String name) {
     Map<String, Object> details = new HashMap<>();
     File aFile = new File(dir, name);
     if (aFile.isDirectory()) return;
@@ -270,7 +299,7 @@ public class FileListEntityProcessor extends EntityProcessorBase {
     details.put(ABSOLUTE_FILE, aFile.getAbsolutePath());
     details.put(SIZE, sz);
     details.put(LAST_MODIFIED, lastModified);
-    files.add(details);
+    files.add(CompletableFuture.completedFuture(details));
   }
 
   public static final Pattern PLACE_HOLDER_PATTERN = Pattern

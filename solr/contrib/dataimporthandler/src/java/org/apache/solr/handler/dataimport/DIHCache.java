@@ -18,6 +18,7 @@ package org.apache.solr.handler.dataimport;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * <p>
@@ -67,7 +68,7 @@ public interface DIHCache extends Iterable<Map<String,Object>> {
    * update a key's documents, first call delete(Object key).
    * </p>
    */
-  void add(Map<String, Object> rec);
+  void add(CompletableFuture<Map<String, Object>> rec);
   
   /**
    * <p>

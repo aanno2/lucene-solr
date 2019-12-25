@@ -18,6 +18,7 @@ package org.apache.solr.handler.dataimport;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -96,7 +97,7 @@ public class LineEntityProcessor extends EntityProcessorBase {
    * many other fields as required.
    */
   @Override
-  public Map<String, Object> nextRow() {
+  public CompletableFuture<Map<String, Object>> nextRow() {
     if (reader == null) {
       reader = new BufferedReader((Reader) context.getDataSource().getData(url));
     }
@@ -125,10 +126,32 @@ public class LineEntityProcessor extends EntityProcessorBase {
       // Contruct the 'row' of fields
       Map<String, Object> row = new HashMap<>();
       row.put("rawLine", line);
-      return row;
+      // TODO (tp)
+      return CompletableFuture.completedFuture(row);
     }
   }
-  
+
+  @Override
+  public boolean hasNextRow() {
+    // TODO (tp)
+    return true;
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
+  }
+
   public void closeResources() {
     if (reader != null) {
       IOUtils.closeQuietly(reader);

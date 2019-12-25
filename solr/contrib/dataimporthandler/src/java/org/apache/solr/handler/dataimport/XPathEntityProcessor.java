@@ -37,6 +37,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -202,8 +203,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
-    Map<String, Object> result;
+  public CompletableFuture<Map<String, Object>> nextRow() {
+    CompletableFuture<Map<String, Object>> result;
 
     if (!context.isRootEntity())
       return fetchNextRow();
@@ -225,8 +226,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, Object> fetchNextRow() {
-    Map<String, Object> r = null;
+  private CompletableFuture<Map<String, Object>> fetchNextRow() {
+    CompletableFuture<Map<String, Object>> r = null;
     while (true) {
       if (rowIterator == null)
         initQuery(context.replaceTokens(context.getEntityAttribute(URL)));
@@ -270,7 +271,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     ((VariableResolver)context.getVariableResolver()).addNamespace(entityName, namespace);
   }
 
-  private void addCommonFields(Map<String, Object> r) {
+  private void addCommonFields(CompletableFuture<Map<String, Object>> r) {
     if(commonFields != null){
       for (String commonField : commonFields) {
         if(r.get(commonField) == null) {
@@ -286,7 +287,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   private void initQuery(String s) {
     Reader data = null;
     try {
-      final List<Map<String, Object>> rows = new ArrayList<>();
+      final List<CompletableFuture<Map<String, Object>>> rows = new ArrayList<>();
       try {
         data = dataSource.getData(s);
       } catch (Exception e) {
@@ -355,11 +356,11 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     }
   }
 
-  protected Map<String, Object> readRow(Map<String, Object> record, String xpath) {
+  protected CompletableFuture<Map<String, Object>> readRow(CompletableFuture<Map<String, Object>> record, String xpath) {
     if (useSolrAddXml) {
       List<String> names = (List<String>) record.get("name");
       List<String> values = (List<String>) record.get("value");
-      Map<String, Object> row = new HashMap<>();
+      CompletableFuture<Map<String, Object>> row = new HashMap<>();
       for (int i = 0; i < names.size() && i < values.size(); i++) {
         if (row.containsKey(names.get(i))) {
           Object existing = row.get(names.get(i));
@@ -417,10 +418,10 @@ public class XPathEntityProcessor extends EntityProcessorBase {
 
   }
 
-  private Iterator<Map<String, Object>> getRowIterator(final Reader data, final String s) {
-    //nothing atomic about it. I just needed a StongReference
+  private Iterator<CompletableFuture<Map<String, Object>>> getRowIterator(final Reader data, final String s) {
+    //nothing atomic about it. I just needed a StrongReference
     final AtomicReference<Exception> exp = new AtomicReference<>();
-    final BlockingQueue<Map<String, Object>> blockingQueue = new ArrayBlockingQueue<>(blockingQueueSize);
+    final BlockingQueue<CompletableFuture<Map<String, Object>>> blockingQueue = new ArrayBlockingQueue<>(blockingQueueSize);
     final AtomicBoolean isEnd = new AtomicBoolean(false);
     final AtomicBoolean throwExp = new AtomicBoolean(true);
     publisherThread = new Thread() {
@@ -471,8 +472,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     
     publisherThread.start();
 
-    return new Iterator<Map<String, Object>>() {
-      private Map<String, Object> lastRow;
+    return new Iterator<CompletableFuture<Map<String, Object>>>() {
+      private CompletableFuture<Map<String, Object>> lastRow;
       int count = 0;
 
       @Override
@@ -481,8 +482,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
       }
 
       @Override
-      public Map<String, Object> next() {
-        Map<String, Object> row;
+      public CompletableFuture<Map<String, Object>> next() {
+        CompletableFuture<Map<String, Object>> row;
         
         do {
           try {
