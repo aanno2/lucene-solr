@@ -449,13 +449,13 @@ public class DocBuilder {
     }
 
     try {
-      Map<String, Object> arow = epw.nextRow();
-      for (boolean loop = true; loop; arow = epw.nextRow()) {
+      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw.nextRow(), true);
+           bsd.loop; bsd.arow = epw.nextRow()) {
         if (stop.get()) {
-          loop = false;
+          bsd.loop = false;
         } else {
           if (importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) {
-            loop = false;
+            bsd.loop = false;
           } else {
 
             int count = importStatistics.seenDocCount.incrementAndGet();
@@ -472,20 +472,20 @@ public class DocBuilder {
               doc = addParentFields(doc, entity, vr);
               ctx.setDoc(doc);
 
-              if (arow == null) {
-                loop = false;
+              if (bsd.arow == null) {
+                bsd.loop = false;
               } else {
 
                 // Support for start parameter in debug mode
                 boolean beforeStart = entity.isDocRoot() && (count <= reqParams.getStart());
                 boolean afterEnd = entity.isDocRoot() && (count > reqParams.getStart() + reqParams.getRows());
                 if (afterEnd) {
-                  loop = false;
+                  bsd.loop = false;
                 }
                 if (!entity.isDocRoot() || (!beforeStart && !afterEnd)) {
 
                   if (verboseDebug) {
-                    getDebugLogger().log(DIHLogLevels.ENTITY_OUT, entity.getName(), arow);
+                    getDebugLogger().log(DIHLogLevels.ENTITY_OUT, entity.getName(), bsd.arow);
                   }
                   importStatistics.rowsCount.incrementAndGet();
 
@@ -493,18 +493,18 @@ public class DocBuilder {
                   if (doc != null) {
                     if (entity.isChild()) {
                       childDoc = new DocWrapper();
-                      handleSpecialCommands(arow, childDoc);
-                      addFields(entity, childDoc, arow, vr);
+                      handleSpecialCommands(bsd.arow, childDoc);
+                      addFields(entity, childDoc, bsd.arow, vr);
                       doc.addChildDocument(childDoc);
                     } else {
-                      handleSpecialCommands(arow, doc);
-                      vr.addNamespace(entity.getName(), arow);
-                      addFields(entity, doc, arow, vr);
+                      handleSpecialCommands(bsd.arow, doc);
+                      vr.addNamespace(entity.getName(), bsd.arow);
+                      addFields(entity, doc, bsd.arow, vr);
                       vr.removeNamespace(entity.getName());
                     }
                   }
                   if (entity.getChildren() != null) {
-                    vr.addNamespace(entity.getName(), arow);
+                    vr.addNamespace(entity.getName(), bsd.arow);
                     for (EntityProcessorWrapper child : epw.getChildren()) {
                       if (childDoc != null) {
                         buildDocument(vr, childDoc,
@@ -518,7 +518,7 @@ public class DocBuilder {
                   }
                   if (entity.isDocRoot()) {
                     if (stop.get()) {
-                      loop = false;
+                      bsd.loop = false;
                     } else {
                       if (!doc.isEmpty()) {
                         boolean result = writer.upload(doc);
@@ -1002,4 +1002,16 @@ public class DocBuilder {
 
   public static final String LAST_INDEX_TIME = "last_index_time";
   public static final String INDEX_START_TIME = "index_start_time";
+
+  static class BuildSingleDoc {
+    DocWrapper doc;
+    Map<String, Object> arow;
+    boolean loop;
+
+    BuildSingleDoc(DocWrapper doc, Map<String,Object> arow, boolean loop) {
+      this.doc = doc;
+      this.arow = arow;
+      this.loop = loop;
+    }
+  }
 }
