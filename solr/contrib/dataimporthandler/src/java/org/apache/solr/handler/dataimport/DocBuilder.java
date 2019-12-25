@@ -447,11 +447,13 @@ public class DocBuilder {
     }
 
     try {
+      Map<String, Object> arow = null;
       while (true) {
         if (stop.get())
           return;
         if(importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) break;
 
+        arow = epw.nextRow();
         int count = importStatistics.seenDocCount.incrementAndGet();
         Entity entity = epw.getEntity();
         try {
@@ -473,11 +475,11 @@ public class DocBuilder {
             }
           }
 
-          Map<String, Object> arow = epw.nextRow();
+          // Map<String, Object> arow = epw.nextRow();
           if (arow == null) {
             break;
           }
-          entity = epw.getEntity();
+          // entity = epw.getEntity();
 
           // Support for start parameter in debug mode
           if (entity.isDocRoot()) {
