@@ -37,6 +37,7 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -835,7 +836,7 @@ public class DocBuilder {
     //get the modified rows in this entity
     String pk = epw.getEntity().getPk();
     while (true) {
-      Map<String, Object> row = epw.nextModifiedRowKey();
+      CompletableFuture<Map<String, Object>> row = epw.nextModifiedRowKey();
 
       if (row == null)
         break;
@@ -855,7 +856,7 @@ public class DocBuilder {
     //get the deleted rows for this entity
     Set<Map<String, Object>> deletedSet = new HashSet<>();
     while (true) {
-      Map<String, Object> row = epw.nextDeletedRowKey();
+      CompletableFuture<Map<String, Object>> row = epw.nextDeletedRowKey();
       if (row == null)
         break;
 
@@ -919,7 +920,7 @@ public class DocBuilder {
                                      Set<Map<String, Object>> parentKeyList) {
     try {
       while (true) {
-        Map<String, Object> parentRow = entityProcessor
+        CompletableFuture<Map<String, Object>> parentRow = entityProcessor
                 .nextModifiedParentRowKey();
         if (parentRow == null)
           break;
@@ -1025,10 +1026,10 @@ public class DocBuilder {
 
   static class BuildSingleDoc {
     DocWrapper doc;
-    Map<String, Object> arow;
+    CompletableFuture<Map<String, Object>> arow;
     boolean loop;
 
-    BuildSingleDoc(DocWrapper doc, Map<String,Object> arow, boolean loop) {
+    BuildSingleDoc(DocWrapper doc, CompletableFuture<Map<String,Object>> arow, boolean loop) {
       this.doc = doc;
       this.arow = arow;
       this.loop = loop;

@@ -586,18 +586,17 @@ public class XPathRecordReader {
      * records values. If a fields value is a List then they have to be
      * deep-copied for thread safety
      */
-    private static CompletableFuture<Map<String, Object>> getDeepCopy(CompletableFuture<Map<String, Object>> fut) {
-      return fut.thenApply(values -> {
-        Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, Object> entry : values.entrySet()) {
-          if (entry.getValue() instanceof List) {
-            result.put(entry.getKey(), new ArrayList((List) entry.getValue()));
-          } else {
-            result.put(entry.getKey(), entry.getValue());
-          }
+    private static CompletableFuture<Map<String, Object>> getDeepCopy(Map<String, Object> values) {
+      Map<String, Object> result = new HashMap<>();
+      for (Map.Entry<String, Object> entry : values.entrySet()) {
+        if (entry.getValue() instanceof List) {
+          result.put(entry.getKey(), new ArrayList((List) entry.getValue()));
+        } else {
+          result.put(entry.getKey(), entry.getValue());
         }
-        return result;
-      });
+      }
+      // TODO (tp)
+      return CompletableFuture.completedFuture(result);
     }
   } // end of class Node
 

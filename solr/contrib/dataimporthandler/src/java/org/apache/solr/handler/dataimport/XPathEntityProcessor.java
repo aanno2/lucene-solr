@@ -221,7 +221,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public void postTransform(Map<String, Object> r) {
+  public void postTransform(CompletableFuture<Map<String, Object>> r) {
     readUsefulVars(r);
   }
 
@@ -271,17 +271,17 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     ((VariableResolver)context.getVariableResolver()).addNamespace(entityName, namespace);
   }
 
-  private void addCommonFields(CompletableFuture<Map<String, Object>> r) {
-    if(commonFields != null){
-      for (String commonField : commonFields) {
-        if(r.get(commonField) == null) {
-          Object val = context.getSessionAttribute(commonField, Context.SCOPE_ENTITY);
-          if(val != null) r.put(commonField, val);
+  private void addCommonFields(CompletableFuture<Map<String, Object>> fut) {
+    fut.thenAccept(r -> {
+      if (commonFields != null) {
+        for (String commonField : commonFields) {
+          if (r.get(commonField) == null) {
+            Object val = context.getSessionAttribute(commonField, Context.SCOPE_ENTITY);
+            if (val != null) r.put(commonField, val);
+          }
         }
-
       }
-    }
-
+    });
   }
 
   private void initQuery(String s) {
@@ -334,7 +334,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
             log.warn(msg, e);
             Map<String, Object> map = new HashMap<>();
             map.put(DocBuilder.SKIP_DOC, Boolean.TRUE);
-            rows.add(map);
+            rows.add(CompletableFuture.completedFuture(map));
           } else if (CONTINUE.equals(onError)) {
             log.warn(msg, e);
           }
@@ -356,32 +356,34 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     }
   }
 
-  protected CompletableFuture<Map<String, Object>> readRow(CompletableFuture<Map<String, Object>> record, String xpath) {
-    if (useSolrAddXml) {
-      List<String> names = (List<String>) record.get("name");
-      List<String> values = (List<String>) record.get("value");
-      CompletableFuture<Map<String, Object>> row = new HashMap<>();
-      for (int i = 0; i < names.size() && i < values.size(); i++) {
-        if (row.containsKey(names.get(i))) {
-          Object existing = row.get(names.get(i));
-          if (existing instanceof List) {
-            List list = (List) existing;
-            list.add(values.get(i));
+  protected CompletableFuture<Map<String, Object>> readRow(CompletableFuture<Map<String, Object>> fut, String xpath) {
+    return fut.thenApply(record -> {
+      if (useSolrAddXml) {
+        List<String> names = (List<String>) record.get("name");
+        List<String> values = (List<String>) record.get("value");
+        Map<String, Object> row = new HashMap<>();
+        for (int i = 0; i < names.size() && i < values.size(); i++) {
+          if (row.containsKey(names.get(i))) {
+            Object existing = row.get(names.get(i));
+            if (existing instanceof List) {
+              List list = (List) existing;
+              list.add(values.get(i));
+            } else {
+              List list = new ArrayList();
+              list.add(existing);
+              list.add(values.get(i));
+              row.put(names.get(i), list);
+            }
           } else {
-            List list = new ArrayList();
-            list.add(existing);
-            list.add(values.get(i));
-            row.put(names.get(i), list);
+            row.put(names.get(i), values.get(i));
           }
-        } else {
-          row.put(names.get(i), values.get(i));
         }
+        return row;
+      } else {
+        record.put(XPATH_FIELD_NAME, xpath);
+        return record;
       }
-      return row;
-    } else {
-      record.put(XPATH_FIELD_NAME, xpath);
-      return record;
-    }
+    });
   }
 
 
@@ -393,29 +395,30 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, Object> readUsefulVars(Map<String, Object> r) {
-    Object val = r.get(HAS_MORE);
-    if (val != null)
-      context.setSessionAttribute(HAS_MORE, val,Context.SCOPE_ENTITY);
-    val = r.get(NEXT_URL);
-    if (val != null)
-      context.setSessionAttribute(NEXT_URL, val,Context.SCOPE_ENTITY);
-    if (placeHolderVariables != null) {
-      for (String s : placeHolderVariables) {
-        val = r.get(s);
-        context.setSessionAttribute(s, val,Context.SCOPE_ENTITY);
-      }
-    }
-    if (commonFields != null) {
-      for (String s : commonFields) {
-        Object commonVal = r.get(s);
-        if (commonVal != null) {
-          context.setSessionAttribute(s, commonVal,Context.SCOPE_ENTITY);
+  private CompletableFuture<Map<String, Object>> readUsefulVars(CompletableFuture<Map<String, Object>> fut) {
+    return fut.thenApply(r -> {
+      Object val = r.get(HAS_MORE);
+      if (val != null)
+        context.setSessionAttribute(HAS_MORE, val, Context.SCOPE_ENTITY);
+      val = r.get(NEXT_URL);
+      if (val != null)
+        context.setSessionAttribute(NEXT_URL, val, Context.SCOPE_ENTITY);
+      if (placeHolderVariables != null) {
+        for (String s : placeHolderVariables) {
+          val = r.get(s);
+          context.setSessionAttribute(s, val, Context.SCOPE_ENTITY);
         }
       }
-    }
-    return r;
-
+      if (commonFields != null) {
+        for (String s : commonFields) {
+          Object commonVal = r.get(s);
+          if (commonVal != null) {
+            context.setSessionAttribute(s, commonVal, Context.SCOPE_ENTITY);
+          }
+        }
+      }
+      return r;
+    });
   }
 
   private Iterator<CompletableFuture<Map<String, Object>>> getRowIterator(final Reader data, final String s) {
@@ -435,7 +438,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
               //though consumer has gone away
               throw new RuntimeException("BREAK");
             }
-            Map<String, Object> row;
+            CompletableFuture<Map<String, Object>> row;
             try {
               row = readRow(record, xpath);
             } catch (Exception e) {
@@ -449,12 +452,12 @@ public class XPathEntityProcessor extends EntityProcessorBase {
         } finally {
           closeIt(data);
           if (!isEnd.get()) {
-            offer(END_MARKER);
+            offer(CompletableFuture.completedFuture(END_MARKER));
           }
         }
       }
       
-      private void offer(Map<String, Object> row) {
+      private void offer(CompletableFuture<Map<String, Object>> row) {
         try {
           while (!blockingQueue.offer(row, blockingQueueTimeOut, blockingQueueTimeOutUnits)) {
             if (isEnd.get()) return;
