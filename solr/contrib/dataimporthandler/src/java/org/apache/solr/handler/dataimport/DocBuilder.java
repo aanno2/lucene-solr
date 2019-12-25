@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -411,7 +413,7 @@ public class DocBuilder {
   private void buildDocument(VariableResolver vr, DocWrapper doc,
       Map<String,Object> pk, EntityProcessorWrapper epw, boolean isRoot,
       ContextImpl parentCtx) {
-    List<EntityProcessorWrapper> entitiesToDestroy = new ArrayList<>();
+    Queue<EntityProcessorWrapper> entitiesToDestroy = new ConcurrentLinkedQueue<>();
     try {
       buildDocument(vr, doc, pk, epw, isRoot, parentCtx, entitiesToDestroy);
     } catch (Exception e) {
@@ -427,7 +429,7 @@ public class DocBuilder {
   @SuppressWarnings("unchecked")
   private void buildDocument(VariableResolver vr, DocWrapper doc,
                              Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot,
-                             ContextImpl parentCtx, List<EntityProcessorWrapper> entitiesToDestroy) {
+                             ContextImpl parentCtx, Queue<EntityProcessorWrapper> entitiesToDestroy) {
 
     ContextImpl ctx = new ContextImpl(epw, vr, null,
             pk == null ? Context.FULL_DUMP : Context.DELTA_DUMP,
@@ -477,16 +479,6 @@ public class DocBuilder {
               } else {
 
                 // Support for start parameter in debug mode
-              /*
-              if (entity.isDocRoot()) {
-                if (count <= reqParams.getStart())
-                  continue;
-                if (count > reqParams.getStart() + reqParams.getRows()) {
-                  log.info("Indexing stopped at docCount = " + importStatistics.docCount);
-                  break;
-                }
-              }
-               */
                 boolean beforeStart = entity.isDocRoot() && (count <= reqParams.getStart());
                 boolean afterEnd = entity.isDocRoot() && (count > reqParams.getStart() + reqParams.getRows());
                 if (afterEnd) {
