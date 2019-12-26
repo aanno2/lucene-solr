@@ -202,22 +202,29 @@ public class XPathEntityProcessor extends EntityProcessorBase {
 
   }
 
+  // TODO (tp): currently depends on resolved last fetchNextRow
   @Override
   public CompletableFuture<Map<String, Object>> nextRow() {
-    CompletableFuture<Map<String, Object>> result;
-
-    if (!context.isRootEntity())
+    if (!context.isRootEntity()) {
       return fetchNextRow();
+    }
 
-    while (true) {
+    CompletableFuture<Map<String, Object>> result = null;
+    boolean loop = true;
+    while (loop) {
       result = fetchNextRow();
 
-      if (result == null)
-        return null;
-
-      if (pk == null || result.get(pk) != null)
-        return result;
+      if (result == null) {
+        loop = false;
+      }
+      if (pk == null) {
+        loop = false;
+      }
+      if (result.get(pk) != null) {
+        loop = false;
+      }
     }
+    return result;
   }
 
   // TODO (tp)
