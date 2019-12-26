@@ -37,6 +37,7 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -501,29 +502,33 @@ public class DocBuilder {
                     DocWrapper childDoc = null;
                     if (bsd.doc != null) {
                       if (entity.isChild()) {
-                        childDoc = new DocWrapper();
-                        handleSpecialCommands(bsd.arow, childDoc);
-                        addFields(entity, childDoc, bsd.arow, vr);
-                        bsd.doc.addChildDocument(childDoc);
+                        final DocWrapper c = new DocWrapper();
+                        childDoc = c;
+                        handleSpecialCommands(bsd.arow, c
+                        ).thenApply(arow -> addFields(entity, c, arow, vr)
+                        ).thenAccept(arow -> bsd.doc.addChildDocument(c));
                       } else {
-                        handleSpecialCommands(bsd.arow, bsd.doc);
-                        vr.addNamespace(entity.getName(), bsd.arow);
-                        addFields(entity, bsd.doc, bsd.arow, vr);
-                        vr.removeNamespace(entity.getName());
+                        handleSpecialCommands(bsd.arow, bsd.doc
+                        ).thenApply(arow -> vr.addNamespace(entity.getName(), arow)
+                        ).thenApply(arow -> addFields(entity, bsd.doc, arow, vr)
+                        ).thenAccept(arow -> vr.removeNamespace(entity.getName()));
                       }
                     }
                     if (entity.getChildren() != null) {
-                      vr.addNamespace(entity.getName(), bsd.arow);
-                      for (EntityProcessorWrapper child : epw.getChildren()) {
-                        if (childDoc != null) {
-                          buildDocument(vr, childDoc,
-                                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
-                        } else {
-                          buildDocument(vr, bsd.doc,
-                                  child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                      final DocWrapper c = childDoc;
+                      vr.addNamespace(entity.getName(), bsd.arow
+                      ).thenAccept(vr -> {
+                        for (EntityProcessorWrapper child : epw.getChildren()) {
+                          if (c != null) {
+                            buildDocument(vr, c,
+                                    child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                          } else {
+                            buildDocument(vr, bsd.doc,
+                                    child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
+                          }
                         }
-                      }
-                      vr.removeNamespace(entity.getName());
+                        vr.removeNamespace(entity.getName());
+                      });
                     }
                     if (entity.isDocRoot()) {
                       if (stop.get()) {
@@ -579,7 +584,9 @@ public class DocBuilder {
           }
         }
       }
-      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw.nextRow(), true);
+      for (BuildSingleDoc bsd = new BuildSingleDoc(doc,
+              CompletableFuture.supplyAsync(() -> epw.nextRow()),
+              true);
            bsd.loop; bsd = bsd.next(epw)) {
         ProcessRow processRow = new ProcessRow(bsd);
         if (isRoot) {
@@ -624,61 +631,64 @@ public class DocBuilder {
     }
   }
 
-  private void handleSpecialCommands(Map<String, Object> arow, DocWrapper doc) {
-    Object value = arow.get(DELETE_DOC_BY_ID);
-    if (value != null) {
-      if (value instanceof Collection) {
-        Collection collection = (Collection) value;
-        for (Object o : collection) {
-          writer.deleteDoc(o.toString());
+  private CompletableFuture<Map<String, Object>> handleSpecialCommands(CompletableFuture<Map<String, Object>> fut, DocWrapper doc) {
+    return fut.thenApply(arow -> {
+      Object value = arow.get(DELETE_DOC_BY_ID);
+      if (value != null) {
+        if (value instanceof Collection) {
+          Collection collection = (Collection) value;
+          for (Object o : collection) {
+            writer.deleteDoc(o.toString());
+            importStatistics.deletedDocCount.incrementAndGet();
+          }
+        } else {
+          writer.deleteDoc(value);
           importStatistics.deletedDocCount.incrementAndGet();
         }
-      } else {
-        writer.deleteDoc(value);
-        importStatistics.deletedDocCount.incrementAndGet();
       }
-    }    
-    value = arow.get(DELETE_DOC_BY_QUERY);
-    if (value != null) {
-      if (value instanceof Collection) {
-        Collection collection = (Collection) value;
-        for (Object o : collection) {
-          writer.deleteByQuery(o.toString());
+      value = arow.get(DELETE_DOC_BY_QUERY);
+      if (value != null) {
+        if (value instanceof Collection) {
+          Collection collection = (Collection) value;
+          for (Object o : collection) {
+            writer.deleteByQuery(o.toString());
+            importStatistics.deletedDocCount.incrementAndGet();
+          }
+        } else {
+          writer.deleteByQuery(value.toString());
           importStatistics.deletedDocCount.incrementAndGet();
         }
-      } else {
-        writer.deleteByQuery(value.toString());
-        importStatistics.deletedDocCount.incrementAndGet();
       }
-    }
-    value = arow.get(DOC_BOOST);
-    if (value != null) {
-      String message = "Ignoring document boost: " + value + " as index-time boosts are not supported anymore";
-      if (WARNED_ABOUT_INDEX_TIME_BOOSTS.compareAndSet(false, true)) {
-        log.warn(message);
-      } else {
-        log.debug(message);
+      value = arow.get(DOC_BOOST);
+      if (value != null) {
+        String message = "Ignoring document boost: " + value + " as index-time boosts are not supported anymore";
+        if (WARNED_ABOUT_INDEX_TIME_BOOSTS.compareAndSet(false, true)) {
+          log.warn(message);
+        } else {
+          log.debug(message);
+        }
       }
-    }
 
-    value = arow.get(SKIP_DOC);
-    if (value != null) {
-      if (Boolean.parseBoolean(value.toString())) {
-        throw new DataImportHandlerException(DataImportHandlerException.SKIP,
-                "Document skipped :" + arow);
+      value = arow.get(SKIP_DOC);
+      if (value != null) {
+        if (Boolean.parseBoolean(value.toString())) {
+          throw new DataImportHandlerException(DataImportHandlerException.SKIP,
+                  "Document skipped :" + arow);
+        }
       }
-    }
 
-    value = arow.get(SKIP_ROW);
-    if (value != null) {
-      if (Boolean.parseBoolean(value.toString())) {
-        throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW);
+      value = arow.get(SKIP_ROW);
+      if (value != null) {
+        if (Boolean.parseBoolean(value.toString())) {
+          throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW);
+        }
       }
-    }
+      return arow;
+    });
   }
 
   @SuppressWarnings("unchecked")
-  private void addFields(Entity entity, DocWrapper doc,
+  private Map<String, Object> addFields(Entity entity, DocWrapper doc,
                          Map<String, Object> arow, VariableResolver vr) {
     for (Map.Entry<String, Object> entry : arow.entrySet()) {
       String key = entry.getKey();
@@ -720,6 +730,7 @@ public class DocBuilder {
         }
       }
     }
+    return arow;
   }
 
   private void addFieldToDoc(Object value, String name, boolean multiValued, DocWrapper doc) {
@@ -1025,17 +1036,25 @@ public class DocBuilder {
 
   static class BuildSingleDoc {
     DocWrapper doc;
-    Map<String, Object> arow;
+    CompletableFuture<Map<String, Object>> arow;
     boolean loop;
 
-    BuildSingleDoc(DocWrapper doc, Map<String,Object> arow, boolean loop) {
+    BuildSingleDoc(DocWrapper doc, CompletableFuture<Map<String,Object>> arow, boolean loop) {
       this.doc = doc;
       this.arow = arow;
       this.loop = loop;
     }
 
+    /*
+    BuildSingleDoc(DocWrapper doc, Map<String,Object> arow, boolean loop) {
+      this(doc, CompletableFuture.supplyAsync(() -> arow), loop);
+    }
+     */
+
     public BuildSingleDoc next(EntityProcessorWrapper epw) {
-      return new BuildSingleDoc(doc, epw.nextRow(), loop);
+      return new BuildSingleDoc(doc,
+              CompletableFuture.supplyAsync(() -> epw.nextRow()),
+              loop);
     }
   }
 }

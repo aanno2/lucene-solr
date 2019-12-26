@@ -21,10 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.WeakHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.solr.client.solrj.cloud.autoscaling.Variable;
 import org.apache.solr.common.util.Cache;
 import org.apache.solr.common.util.MapBackedCache;
 import org.apache.solr.update.processor.TemplateUpdateProcessorFactory;
@@ -145,12 +147,13 @@ public class VariableResolver {
   public String replaceTokens(String template) {
     return TemplateUpdateProcessorFactory.replaceTokens(template, cache, fun, TemplateUpdateProcessorFactory.DOLLAR_BRACES_PLACEHOLDER_PATTERN);
   }
-  public void addNamespace(String name, Map<String,Object> newMap) {
+
+  public Map<String,Object> addNamespace(String name, Map<String,Object> newMap) {
     if (newMap != null) {
       if (name != null) {
         String[] nameParts = DOT_PATTERN.split(name);
         Map<String,Object> nameResolveLevel = currentLevelMap(nameParts,
-            rootNamespace, false).map;
+                rootNamespace, false).map;
         nameResolveLevel.put(nameParts[nameParts.length - 1], newMap);
       } else {
         for (Map.Entry<String,Object> entry : newMap.entrySet()) {
@@ -161,6 +164,28 @@ public class VariableResolver {
         }
       }
     }
+    return newMap;
+  }
+
+  public CompletableFuture<VariableResolver> addNamespace(String name, CompletableFuture<Map<String, Object>> fut) {
+    return fut.thenApply(newMap -> {
+      if (newMap != null) {
+        if (name != null) {
+          String[] nameParts = DOT_PATTERN.split(name);
+          Map<String, Object> nameResolveLevel = currentLevelMap(nameParts,
+                  rootNamespace, false).map;
+          nameResolveLevel.put(nameParts[nameParts.length - 1], newMap);
+        } else {
+          for (Map.Entry<String, Object> entry : newMap.entrySet()) {
+            String[] keyParts = DOT_PATTERN.split(entry.getKey());
+            Map<String, Object> currentLevel = rootNamespace;
+            currentLevel = currentLevelMap(keyParts, currentLevel, false).map;
+            currentLevel.put(keyParts[keyParts.length - 1], entry.getValue());
+          }
+        }
+      }
+      return this;
+    });
   }
 
   public List<String> getVariables(String expr) {
