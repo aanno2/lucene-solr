@@ -20,6 +20,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.solr.handler.dataimport.DIHCacheSupport.Relation;
 import org.slf4j.Logger;
@@ -64,9 +65,16 @@ class Zipper {
       
     while(peeker.hasNext()){
       CompletableFuture<Map<String,Object>> current = peeker.peek();
-      // ???
-      Comparable childId = (Comparable) current.get().get(relation.primaryKey);
-      
+      // TODO (tp)
+      Comparable childId = null;
+      try {
+        childId = (Comparable) current.get().get(relation.primaryKey);
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+      } catch (ExecutionException e) {
+        throw new IllegalStateException(e);
+      }
+
       if(lastChildId!=null && lastChildId.compareTo(childId)>0){
         throw new IllegalArgumentException("expect increasing foreign keys for "+relation+
             " got: "+lastChildId+","+childId);
