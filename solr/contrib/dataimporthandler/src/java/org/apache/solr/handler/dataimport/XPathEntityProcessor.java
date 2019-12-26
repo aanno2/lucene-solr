@@ -35,12 +35,11 @@ import java.io.CharArrayWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * <p> An implementation of {@link EntityProcessor} which uses a streaming xpath parser to extract values out of XML documents.
@@ -208,24 +207,37 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     if (!context.isRootEntity()) {
       return fetchNextRow();
     }
+    return next().get();
+  }
 
-    CompletableFuture<Map<String, Object>> result = null;
+  private TailCall<CompletableFuture<Map<String, Object>>> next() {
     boolean loop = true;
-    while (loop) {
-      result = fetchNextRow();
+    CompletableFuture<Map<String, Object>> result = fetchNextRow();
 
-      if (result == null) {
-        loop = false;
-      }
-      if (pk == null) {
-        loop = false;
-      }
-      if (result.get(pk) != null) {
-        loop = false;
+    if (result == null) {
+      loop = false;
+    }
+    if (pk == null) {
+      loop = false;
+    }
+    if (loop) {
+      try {
+        if (result.get().get(pk) != null) {
+          loop = false;
+        }
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+      } catch (ExecutionException e) {
+        throw new IllegalStateException(e);
       }
     }
-    return result;
-  }
+    if (!loop) {
+      return TailCalls.done(result);
+    }
+    // tail rec
+    return () -> next();
+  };
+
 
   // TODO (tp)
   @Override
