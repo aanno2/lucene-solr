@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.WeakHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,6 +146,7 @@ public class VariableResolver {
   public String replaceTokens(String template) {
     return TemplateUpdateProcessorFactory.replaceTokens(template, cache, fun, TemplateUpdateProcessorFactory.DOLLAR_BRACES_PLACEHOLDER_PATTERN);
   }
+
   public void addNamespace(String name, Map<String,Object> newMap) {
     if (newMap != null) {
       if (name != null) {
@@ -161,6 +163,10 @@ public class VariableResolver {
         }
       }
     }
+  }
+
+  public void addNamespace(String name, CompletableFuture<Map<String, Object>> fut) {
+    fut.thenAccept(newMap -> addNamespace(name, newMap));
   }
 
   public List<String> getVariables(String expr) {

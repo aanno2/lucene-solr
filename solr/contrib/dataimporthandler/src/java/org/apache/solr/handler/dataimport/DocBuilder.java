@@ -603,8 +603,8 @@ public class DocBuilder {
       // ctx.setDoc(doc);
       Entity e = entity;
       while (e.getParentEntity() != null) {
-        addFields(e.getParentEntity(), doc, (Map<String, Object>) vr
-                .resolve(e.getParentEntity().getName()), vr);
+        addFields(e.getParentEntity(), doc, CompletableFuture.completedFuture(
+                (Map<String, Object>) vr.resolve(e.getParentEntity().getName())), vr);
         e = e.getParentEntity();
       }
     }
@@ -625,102 +625,106 @@ public class DocBuilder {
     }
   }
 
-  private void handleSpecialCommands(Map<String, Object> arow, DocWrapper doc) {
-    Object value = arow.get(DELETE_DOC_BY_ID);
-    if (value != null) {
-      if (value instanceof Collection) {
-        Collection collection = (Collection) value;
-        for (Object o : collection) {
-          writer.deleteDoc(o.toString());
+  private void handleSpecialCommands(CompletableFuture<Map<String, Object>> fut, DocWrapper doc) {
+    fut.thenAccept(arow -> {
+      Object value = arow.get(DELETE_DOC_BY_ID);
+      if (value != null) {
+        if (value instanceof Collection) {
+          Collection collection = (Collection) value;
+          for (Object o : collection) {
+            writer.deleteDoc(o.toString());
+            importStatistics.deletedDocCount.incrementAndGet();
+          }
+        } else {
+          writer.deleteDoc(value);
           importStatistics.deletedDocCount.incrementAndGet();
         }
-      } else {
-        writer.deleteDoc(value);
-        importStatistics.deletedDocCount.incrementAndGet();
       }
-    }    
-    value = arow.get(DELETE_DOC_BY_QUERY);
-    if (value != null) {
-      if (value instanceof Collection) {
-        Collection collection = (Collection) value;
-        for (Object o : collection) {
-          writer.deleteByQuery(o.toString());
+      value = arow.get(DELETE_DOC_BY_QUERY);
+      if (value != null) {
+        if (value instanceof Collection) {
+          Collection collection = (Collection) value;
+          for (Object o : collection) {
+            writer.deleteByQuery(o.toString());
+            importStatistics.deletedDocCount.incrementAndGet();
+          }
+        } else {
+          writer.deleteByQuery(value.toString());
           importStatistics.deletedDocCount.incrementAndGet();
         }
-      } else {
-        writer.deleteByQuery(value.toString());
-        importStatistics.deletedDocCount.incrementAndGet();
       }
-    }
-    value = arow.get(DOC_BOOST);
-    if (value != null) {
-      String message = "Ignoring document boost: " + value + " as index-time boosts are not supported anymore";
-      if (WARNED_ABOUT_INDEX_TIME_BOOSTS.compareAndSet(false, true)) {
-        log.warn(message);
-      } else {
-        log.debug(message);
+      value = arow.get(DOC_BOOST);
+      if (value != null) {
+        String message = "Ignoring document boost: " + value + " as index-time boosts are not supported anymore";
+        if (WARNED_ABOUT_INDEX_TIME_BOOSTS.compareAndSet(false, true)) {
+          log.warn(message);
+        } else {
+          log.debug(message);
+        }
       }
-    }
 
-    value = arow.get(SKIP_DOC);
-    if (value != null) {
-      if (Boolean.parseBoolean(value.toString())) {
-        throw new DataImportHandlerException(DataImportHandlerException.SKIP,
-                "Document skipped :" + arow);
+      value = arow.get(SKIP_DOC);
+      if (value != null) {
+        if (Boolean.parseBoolean(value.toString())) {
+          throw new DataImportHandlerException(DataImportHandlerException.SKIP,
+                  "Document skipped :" + arow);
+        }
       }
-    }
 
-    value = arow.get(SKIP_ROW);
-    if (value != null) {
-      if (Boolean.parseBoolean(value.toString())) {
-        throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW);
+      value = arow.get(SKIP_ROW);
+      if (value != null) {
+        if (Boolean.parseBoolean(value.toString())) {
+          throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW);
+        }
       }
-    }
+    });
   }
 
   @SuppressWarnings("unchecked")
   private void addFields(Entity entity, DocWrapper doc,
-                         Map<String, Object> arow, VariableResolver vr) {
-    for (Map.Entry<String, Object> entry : arow.entrySet()) {
-      String key = entry.getKey();
-      Object value = entry.getValue();
-      if (value == null)  continue;
-      if (key.startsWith("$")) continue;
-      Set<EntityField> field = entity.getColNameVsField().get(key);
-      IndexSchema schema = null == reqParams.getRequest() ? null : reqParams.getRequest().getSchema();
-      if (field == null && schema != null) {
-        // This can be a dynamic field or a field which does not have an entry in data-config ( an implicit field)
-        SchemaField sf = schema.getFieldOrNull(key);
-        if (sf == null) {
-          sf = config.getSchemaField(key);
-        }
-        if (sf != null) {
-          addFieldToDoc(entry.getValue(), sf.getName(), sf.multiValued(), doc);
-        }
-        //else do nothing. if we add it it may fail
-      } else {
-        if (field != null) {
-          for (EntityField f : field) {
-            String name = f.getName();
-            boolean multiValued = f.isMultiValued();
-            boolean toWrite = f.isToWrite();
-            if(f.isDynamicName()){
-              name =  vr.replaceTokens(name);
-              SchemaField schemaField = config.getSchemaField(name);
-              if(schemaField == null) {
-                toWrite = false;
-              } else {
-                multiValued = schemaField.multiValued();
-                toWrite = true;
+                         CompletableFuture<Map<String, Object>> fut, VariableResolver vr) {
+    fut.thenAccept(arow -> {
+      for (Map.Entry<String, Object> entry : arow.entrySet()) {
+        String key = entry.getKey();
+        Object value = entry.getValue();
+        if (value == null) continue;
+        if (key.startsWith("$")) continue;
+        Set<EntityField> field = entity.getColNameVsField().get(key);
+        IndexSchema schema = null == reqParams.getRequest() ? null : reqParams.getRequest().getSchema();
+        if (field == null && schema != null) {
+          // This can be a dynamic field or a field which does not have an entry in data-config ( an implicit field)
+          SchemaField sf = schema.getFieldOrNull(key);
+          if (sf == null) {
+            sf = config.getSchemaField(key);
+          }
+          if (sf != null) {
+            addFieldToDoc(entry.getValue(), sf.getName(), sf.multiValued(), doc);
+          }
+          //else do nothing. if we add it it may fail
+        } else {
+          if (field != null) {
+            for (EntityField f : field) {
+              String name = f.getName();
+              boolean multiValued = f.isMultiValued();
+              boolean toWrite = f.isToWrite();
+              if (f.isDynamicName()) {
+                name = vr.replaceTokens(name);
+                SchemaField schemaField = config.getSchemaField(name);
+                if (schemaField == null) {
+                  toWrite = false;
+                } else {
+                  multiValued = schemaField.multiValued();
+                  toWrite = true;
+                }
               }
-            }
-            if (toWrite) {
-              addFieldToDoc(entry.getValue(), name, multiValued, doc);
+              if (toWrite) {
+                addFieldToDoc(entry.getValue(), name, multiValued, doc);
+              }
             }
           }
         }
       }
-    }
+    });
   }
 
   private void addFieldToDoc(Object value, String name, boolean multiValued, DocWrapper doc) {
@@ -834,47 +838,56 @@ public class DocBuilder {
     Map<String, Map<String, Object>> deltaSet = new HashMap<>();
     log.info("Running ModifiedRowKey() for Entity: " + epw.getEntity().getName());
     //get the modified rows in this entity
-    String pk = epw.getEntity().getPk();
+    final String pk = epw.getEntity().getPk();
+    // TODO (tp): make multithreaded
     while (true) {
-      CompletableFuture<Map<String, Object>> row = epw.nextModifiedRowKey();
-
-      if (row == null)
+      CompletableFuture<Map<String, Object>> fut = epw.nextModifiedRowKey();
+      if (fut == null)
         break;
 
-      Object pkValue = row.get(pk);
-      if (pkValue == null) {
-        pk = findMatchingPkColumn(pk, row);
-        pkValue = row.get(pk);
-      }
+      fut.thenAccept(row -> {
+        if (row != null) {
+          Object pkValue = row.get(pk);
+          if (pkValue == null) {
+            pk = findMatchingPkColumn(pk, row);
+            pkValue = row.get(pk);
+          }
 
-      deltaSet.put(pkValue.toString(), row);
-      importStatistics.rowsCount.incrementAndGet();
+          deltaSet.put(pkValue.toString(), row);
+          importStatistics.rowsCount.incrementAndGet();
+        }
+      });
       // check for abort
       if (stop.get())
         return new HashSet();
     }
     //get the deleted rows for this entity
     Set<Map<String, Object>> deletedSet = new HashSet<>();
+    // TODO (tp): make multithreaded
     while (true) {
-      CompletableFuture<Map<String, Object>> row = epw.nextDeletedRowKey();
-      if (row == null)
+      CompletableFuture<Map<String, Object>> fut = epw.nextDeletedRowKey();
+      if (fut == null)
         break;
 
-      deletedSet.add(row);
-      
-      Object pkValue = row.get(pk);
-      if (pkValue == null) {
-        pk = findMatchingPkColumn(pk, row);
-        pkValue = row.get(pk);
-      }
+      fut.thenAccept(row -> {
+        if (row != null) {
+          deletedSet.add(row);
 
-      // Remove deleted rows from the delta rows
-      String deletedRowPk = pkValue.toString();
-      if (deltaSet.containsKey(deletedRowPk)) {
-        deltaSet.remove(deletedRowPk);
-      }
+          Object pkValue = row.get(pk);
+          if (pkValue == null) {
+            pk = findMatchingPkColumn(pk, row);
+            pkValue = row.get(pk);
+          }
 
-      importStatistics.rowsCount.incrementAndGet();
+          // Remove deleted rows from the delta rows
+          String deletedRowPk = pkValue.toString();
+          if (deltaSet.containsKey(deletedRowPk)) {
+            deltaSet.remove(deletedRowPk);
+          }
+
+          importStatistics.rowsCount.incrementAndGet();
+        }
+      });
       // check for abort
       if (stop.get())
         return new HashSet();
@@ -884,7 +897,7 @@ public class DocBuilder {
     log.info("Completed DeletedRowKey for Entity: " + epw.getEntity().getName() + " rows obtained : " + deletedSet.size());
 
     myModifiedPks.addAll(deltaSet.values());
-    Set<Map<String, Object>> parentKeyList = new HashSet<>();
+    Set<CompletableFuture<Map<String, Object>>> parentKeyList = new HashSet<>();
     //all that we have captured is useless (in a sub-entity) if no rows in the parent is modified because of these
     //propogate up the changes in the chain
     if (epw.getEntity().getParentEntity() != null) {
@@ -917,7 +930,7 @@ public class DocBuilder {
 
   private void getModifiedParentRows(VariableResolver resolver,
                                      String entity, EntityProcessor entityProcessor,
-                                     Set<Map<String, Object>> parentKeyList) {
+                                     Set<CompletableFuture<Map<String, Object>>> parentKeyList) {
     try {
       while (true) {
         CompletableFuture<Map<String, Object>> parentRow = entityProcessor

@@ -76,7 +76,9 @@ public class SolrEntityProcessor extends EntityProcessorBase {
   private String[] fields;
   private String requestHandler;// 'qt' param
   private int timeout = TIMEOUT_SECS;
-  
+
+  private SolrDocumentListIterator solrDocumentListIterator;
+
   @Override
   public void destroy() {
     try {
@@ -137,28 +139,50 @@ public class SolrEntityProcessor extends EntityProcessorBase {
     buildIterator();
     return getNext();
   }
-  
+
+  @Override
+  public boolean hasNextRow() {
+    buildIterator();
+    return hasNext();
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
+  }
+
   /**
    * The following method changes the rowIterator mutable field. It requires
    * external synchronization. 
    */
   protected void buildIterator() {
     if (rowIterator != null)  {
-      SolrDocumentListIterator documentListIterator = (SolrDocumentListIterator) rowIterator;
+      SolrDocumentListIterator documentListIterator = solrDocumentListIterator;
       if (!documentListIterator.hasNext() && documentListIterator.hasMoreRows()) {
         nextPage();
       }
     } else {
       boolean cursor = Boolean.parseBoolean(context
           .getResolvedEntityAttribute(CursorMarkParams.CURSOR_MARK_PARAM));
-      rowIterator = !cursor ? new SolrDocumentListIterator(new SolrDocumentList())
+      solrDocumentListIterator = !cursor ? new SolrDocumentListIterator(new SolrDocumentList())
           : new SolrDocumentListCursor(new SolrDocumentList(), CursorMarkParams.CURSOR_MARK_START);
+      rowIterator = CollectionUtil.completableFutureIterator(solrDocumentListIterator);
       nextPage();
     }
   }
   
   protected void nextPage() {
-    ((SolrDocumentListIterator)rowIterator).doQuery();
+    solrDocumentListIterator.doQuery();
   }
 
   class SolrDocumentListCursor extends SolrDocumentListIterator {
@@ -182,9 +206,8 @@ public class SolrEntityProcessor extends EntityProcessorBase {
     
     @Override
     protected Iterator<Map<String,Object>> createNextPageIterator(QueryResponse response) {
-      return
-          new SolrDocumentListCursor(response.getResults(),
-              response.getNextCursorMark()) ;
+      SolrDocumentList list = response.getResults();
+      return new SolrDocumentListCursor(list, response.getNextCursorMark());
     }
   }
   
@@ -194,8 +217,11 @@ public class SolrEntityProcessor extends EntityProcessorBase {
     private final int size;
     private final long numFound;
     private final Iterator<SolrDocument> solrDocumentIterator;
-    
+
+    protected SolrDocumentList solrDocuments;
+
     public SolrDocumentListIterator(SolrDocumentList solrDocumentList) {
+      this.solrDocuments = solrDocumentList;
       this.solrDocumentIterator = solrDocumentList.iterator();
       this.numFound = solrDocumentList.getNumFound();
       // SolrQuery has the start field of type int while SolrDocumentList of
@@ -263,13 +289,21 @@ public class SolrEntityProcessor extends EntityProcessorBase {
       }
       
       if (response != null) {
-        SolrEntityProcessor.this.rowIterator = createNextPageIterator(response);
+        SolrEntityProcessor.this.solrDocumentListIterator =
+                (SolrDocumentListIterator) createNextPageIterator(response);
+        SolrEntityProcessor.this.rowIterator = CollectionUtil.completableFutureIterator(
+                SolrEntityProcessor.this.solrDocumentListIterator);
       }
       return response;
     }
 
+    protected SolrDocumentList getSolrDocumentList() {
+      return solrDocuments;
+    }
+
     protected Iterator<Map<String,Object>> createNextPageIterator(QueryResponse response) {
-      return new SolrDocumentListIterator(response.getResults());
+      solrDocuments = response.getResults();
+      return new SolrDocumentListIterator(solrDocuments);
     }
 
     protected void passNextPage(SolrQuery solrQuery) {
