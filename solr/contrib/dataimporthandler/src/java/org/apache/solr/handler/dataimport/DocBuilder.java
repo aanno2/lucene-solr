@@ -451,6 +451,7 @@ public class DocBuilder {
     }
 
     try {
+      AtomicBoolean loop = new AtomicBoolean(true);
       class ProcessRow implements Runnable {
 
         private BuildSingleDoc bsd;
@@ -462,12 +463,11 @@ public class DocBuilder {
         @Override
         public void run() {
           if (stop.get()) {
-            bsd.loop = false;
+            loop.set(false);
           } else {
             if (importStatistics.docCount.get() > (reqParams.getStart() + reqParams.getRows())) {
-              bsd.loop = false;
+              loop.set(false);
             } else {
-
               int count = importStatistics.seenDocCount.incrementAndGet();
               Entity entity = epw.getEntity();
               try {
@@ -483,14 +483,13 @@ public class DocBuilder {
                 ctx.setDoc(bsd.doc);
 
                 if (bsd.arow == null) {
-                  bsd.loop = false;
+                  loop.set(false);
                 } else {
-
                   // Support for start parameter in debug mode
                   boolean beforeStart = entity.isDocRoot() && (count <= reqParams.getStart());
                   boolean afterEnd = entity.isDocRoot() && (count > reqParams.getStart() + reqParams.getRows());
                   if (afterEnd) {
-                    bsd.loop = false;
+                    loop.set(false);
                   }
                   if (!entity.isDocRoot() || (!beforeStart && !afterEnd)) {
 
@@ -532,7 +531,7 @@ public class DocBuilder {
                     }
                     if (entity.isDocRoot()) {
                       if (stop.get()) {
-                        bsd.loop = false;
+                        loop.set(false);
                       } else {
                         if (!bsd.doc.isEmpty()) {
                           boolean result = writer.upload(bsd.doc);
@@ -584,10 +583,8 @@ public class DocBuilder {
           }
         }
       }
-      for (BuildSingleDoc bsd = new BuildSingleDoc(doc,
-              CompletableFuture.supplyAsync(() -> epw.nextRow()),
-              true);
-           bsd.loop; bsd = bsd.next(epw)) {
+      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, null).next(epw, loop);
+           loop.get(); bsd = bsd.next(epw, loop)) {
         ProcessRow processRow = new ProcessRow(bsd);
         if (isRoot) {
           bsd.doc = null;
@@ -1037,12 +1034,10 @@ public class DocBuilder {
   static class BuildSingleDoc {
     DocWrapper doc;
     CompletableFuture<Map<String, Object>> arow;
-    boolean loop;
 
-    BuildSingleDoc(DocWrapper doc, CompletableFuture<Map<String,Object>> arow, boolean loop) {
+    BuildSingleDoc(DocWrapper doc, CompletableFuture<Map<String,Object>> arow) {
       this.doc = doc;
       this.arow = arow;
-      this.loop = loop;
     }
 
     /*
@@ -1051,10 +1046,18 @@ public class DocBuilder {
     }
      */
 
-    public BuildSingleDoc next(EntityProcessorWrapper epw) {
+    public BuildSingleDoc next(EntityProcessorWrapper epw, AtomicBoolean loop) {
       return new BuildSingleDoc(doc,
-              CompletableFuture.supplyAsync(() -> epw.nextRow()),
-              loop);
+              CompletableFuture.supplyAsync(() -> {
+                if (!loop.get()) {
+                  return null;
+                }
+                Map<String, Object> result = epw.nextRow();
+                if (result == null) {
+                  loop.set(false);
+                }
+                return result;
+              }));
     }
   }
 }
