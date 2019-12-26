@@ -17,6 +17,7 @@
 package org.apache.solr.handler.dataimport;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.solr.common.SolrInputDocument;
 
@@ -94,6 +95,6 @@ public interface DIHWriter {
    *  Specify the keys to be modified by a delta update (required by writers that can store duplicate keys)
    * </p>
    */
-  public void setDeltaKeys(Set<Map<String, Object>> deltaKeys) ;
+  public void setDeltaKeys(Set<CompletableFuture<Map<String, Object>>> deltaKeys) ;
 
 }

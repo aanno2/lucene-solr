@@ -46,7 +46,7 @@ public class PlainTextEntityProcessor extends EntityProcessorBase {
   @Override
   public CompletableFuture<Map<String, Object>> nextRow() {
     if (ended) return null;
-    return new CompletableFuture<Map<String, Object>>().completeAsync(() -> {
+    return CompletableFuture.supplyAsync(() -> {
       DataSource<Reader> ds = context.getDataSource();
       String url = context.replaceTokens(context.getEntityAttribute(URL));
       Reader r = null;

@@ -220,6 +220,27 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     }
   }
 
+  // TODO (tp)
+  @Override
+  public boolean hasNextRow() {
+    return hasFetchNextRow();
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
+  }
+
   @Override
   public void postTransform(CompletableFuture<Map<String, Object>> r) {
     readUsefulVars(r);
@@ -253,6 +274,38 @@ public class XPathEntityProcessor extends EntityProcessorBase {
         }
       }
       addCommonFields(r);
+      return r;
+    }
+  }
+
+  // TODO (tp)
+  private boolean hasFetchNextRow() {
+    boolean r = false;
+    while (true) {
+      if (rowIterator == null)
+        initQuery(context.replaceTokens(context.getEntityAttribute(URL)));
+      r = hasNext();
+      if (r == false) {
+        Object hasMore = context.getSessionAttribute(HAS_MORE, Context.SCOPE_ENTITY);
+        try {
+          if ("true".equals(hasMore) || Boolean.TRUE.equals(hasMore)) {
+            String url = (String) context.getSessionAttribute(NEXT_URL, Context.SCOPE_ENTITY);
+            if (url == null)
+              url = context.getEntityAttribute(URL);
+            addNamespace();
+            initQuery(context.replaceTokens(url));
+            r = hasNext();
+            if (r == false)
+              return false;
+          } else {
+            return false;
+          }
+        } finally {
+          context.setSessionAttribute(HAS_MORE,null,Context.SCOPE_ENTITY);
+          context.setSessionAttribute(NEXT_URL,null,Context.SCOPE_ENTITY);
+        }
+      }
+      // addCommonFields(r);
       return r;
     }
   }

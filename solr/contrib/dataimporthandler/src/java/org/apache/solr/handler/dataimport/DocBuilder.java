@@ -346,7 +346,8 @@ public class DocBuilder {
     addStatusMessage("Identifying Delta");
     log.info("Starting delta collection.");
     Set<Map<String, Object>> deletedKeys = new HashSet<>();
-    Set<Map<String, Object>> allPks = collectDelta(currentEntityProcessorWrapper, resolver, deletedKeys);
+    Set<CompletableFuture<Map<String, Object>>> allPks = collectDelta(
+            currentEntityProcessorWrapper, resolver, deletedKeys);
     if (stop.get())
       return;
     addStatusMessage("Deltas Obtained");
@@ -361,11 +362,13 @@ public class DocBuilder {
 
     statusMessages.put("Total Changed Documents", allPks.size());
     VariableResolver vri = getVariableResolver();
-    Iterator<Map<String, Object>> pkIter = allPks.iterator();
+    Iterator<CompletableFuture<Map<String, Object>>> pkIter = allPks.iterator();
     while (pkIter.hasNext()) {
-      Map<String, Object> map = pkIter.next();
-      vri.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT + ".delta", map);
-      buildDocument(vri, null, map, currentEntityProcessorWrapper, true, null);
+      CompletableFuture<Map<String, Object>> fut = pkIter.next();
+      vri.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT + ".delta", fut);
+      // TODO (tp)
+      fut.thenAccept(map -> buildDocument(
+              vri, null, map, currentEntityProcessorWrapper, true, null));
       pkIter.remove();
       // check for abort
       if (stop.get())
@@ -813,8 +816,9 @@ public class DocBuilder {
    * @return an iterator to the list of keys for which Solr documents should be updated.
    */
   @SuppressWarnings("unchecked")
-  public Set<Map<String, Object>> collectDelta(EntityProcessorWrapper epw, VariableResolver resolver,
-                                               Set<Map<String, Object>> deletedRows) {
+  public Set<CompletableFuture<Map<String, Object>>> collectDelta(
+          EntityProcessorWrapper epw, VariableResolver resolver,
+          Set<Map<String, Object>> deletedRows) {
     //someone called abort
     if (stop.get())
       return new HashSet();
@@ -822,9 +826,7 @@ public class DocBuilder {
     ContextImpl context1 = new ContextImpl(epw, resolver, null, Context.FIND_DELTA, session, null, this);
     epw.init(context1);
 
-    Set<Map<String, Object>> myModifiedPks = new HashSet<>();
-
-   
+    Set<CompletableFuture<Map<String, Object>>> myModifiedPks = new HashSet<>();
 
     for (EntityProcessorWrapper childEpw : epw.getChildren()) {
       //this ensures that we start from the leaf nodes
@@ -835,7 +837,7 @@ public class DocBuilder {
     }
     
     // identifying the modified rows for this entity
-    Map<String, Map<String, Object>> deltaSet = new HashMap<>();
+    Map<String, CompletableFuture<Map<String, Object>>> deltaSet = new HashMap<>();
     log.info("Running ModifiedRowKey() for Entity: " + epw.getEntity().getName());
     //get the modified rows in this entity
     final String pk = epw.getEntity().getPk();
@@ -849,11 +851,11 @@ public class DocBuilder {
         if (row != null) {
           Object pkValue = row.get(pk);
           if (pkValue == null) {
-            pk = findMatchingPkColumn(pk, row);
-            pkValue = row.get(pk);
+            String pk1 = findMatchingPkColumn(pk, row);
+            pkValue = row.get(pk1);
           }
-
-          deltaSet.put(pkValue.toString(), row);
+          // TODO (tp)
+          deltaSet.put(pkValue.toString(), fut);
           importStatistics.rowsCount.incrementAndGet();
         }
       });
@@ -875,8 +877,8 @@ public class DocBuilder {
 
           Object pkValue = row.get(pk);
           if (pkValue == null) {
-            pk = findMatchingPkColumn(pk, row);
-            pkValue = row.get(pk);
+            String pk1 = findMatchingPkColumn(pk, row);
+            pkValue = row.get(pk1);
           }
 
           // Remove deleted rows from the delta rows
@@ -903,7 +905,7 @@ public class DocBuilder {
     if (epw.getEntity().getParentEntity() != null) {
       // identifying deleted rows with deltas
 
-      for (Map<String, Object> row : myModifiedPks) {
+      for (CompletableFuture<Map<String, Object>> row : myModifiedPks) {
         resolver.addNamespace(epw.getEntity().getName(), row);
         getModifiedParentRows(resolver, epw.getEntity().getName(), epw, parentKeyList);
         // check for abort

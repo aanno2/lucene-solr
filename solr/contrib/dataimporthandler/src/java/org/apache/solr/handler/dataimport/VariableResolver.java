@@ -165,6 +165,7 @@ public class VariableResolver {
     }
   }
 
+  // TODO (tp)
   public void addNamespace(String name, CompletableFuture<Map<String, Object>> fut) {
     fut.thenAccept(newMap -> addNamespace(name, newMap));
   }
