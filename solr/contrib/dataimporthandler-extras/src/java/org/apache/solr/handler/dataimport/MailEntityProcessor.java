@@ -38,6 +38,7 @@ import java.lang.invoke.MethodHandles;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import com.sun.mail.gimap.GmailFolder;
@@ -195,24 +196,46 @@ public class MailEntityProcessor extends EntityProcessorBase {
   }
     
   @Override
-  public Map<String,Object> nextRow() {
-    Message mail = null;
-    Map<String,Object> row = null;
-    do {
-      // try till there is a valid document or folders get exhausted.
-      // when mail == NULL, it means end of processing
-      mail = getNextMail();   
-      
-      if (mail != null)
-        row = getDocumentFromMail(mail);
-      
-      if (row != null && row.get("folder") == null) 
-        row.put("folder", mail.getFolder().getFullName());
-      
-    } while (row == null && mail != null);
-    return row;
+  public CompletableFuture<Map<String,Object>> nextRow() {
+    return CompletableFuture.supplyAsync(() -> {
+      Message mail = null;
+      Map<String, Object> row = null;
+      do {
+        // try till there is a valid document or folders get exhausted.
+        // when mail == NULL, it means end of processing
+        mail = getNextMail();
+
+        if (mail != null)
+          row = getDocumentFromMail(mail);
+
+        if (row != null && row.get("folder") == null)
+          row.put("folder", mail.getFolder().getFullName());
+
+      } while (row == null && mail != null);
+      return row;
+    });
   }
-  
+
+  @Override
+  public boolean hasNextRow() {
+    return hasNextMail();
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
+  }
+
   private Message getNextMail() {
     if (!connected) {
       // this is needed to load the activation mail stuff correctly
@@ -239,6 +262,35 @@ public class MailEntityProcessor extends EntityProcessorBase {
       msgIter = new MessageIterator(next, batchSize);
     }
     return msgIter.next();
+  }
+
+  // TODO (tp)
+  private boolean hasNextMail() {
+    if (!connected) {
+      // this is needed to load the activation mail stuff correctly
+      // otherwise, the JavaMail multipart support doesn't get configured
+      // correctly, which leads to a class cast exception when processing
+      // multipart messages: IMAPInputStream cannot be cast to
+      // javax.mail.Multipart
+      if (false == withContextClassLoader(getClass().getClassLoader(), this::connectToMailBox)) {
+        return false;
+      }
+      connected = true;
+    }
+    if (folderIter == null) {
+      createFilters();
+      folderIter = new FolderIterator(mailbox);
+    }
+    // get next message from the folder
+    // if folder is exhausted get next folder
+    // loop till a valid mail or all folders exhausted.
+    while (msgIter == null || !msgIter.hasNext()) {
+      boolean next = folderIter.hasNext();
+      if (next == false) return false;
+
+      msgIter = new MessageIterator(folderIter.next(), batchSize);
+    }
+    return msgIter.hasNext();
   }
   
   private Map<String,Object> getDocumentFromMail(Message mail) {

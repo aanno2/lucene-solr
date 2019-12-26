@@ -128,34 +128,35 @@ public class TikaEntityProcessor extends EntityProcessorBase {
   @Override
   public CompletableFuture<Map<String, Object>> nextRow() {
     if(done) return null;
-    Map<String, Object> row = new HashMap<>();
-    DataSource<InputStream> dataSource = context.getDataSource();
-    InputStream is = dataSource.getData(context.getResolvedEntityAttribute(URL));
-    ContentHandler contentHandler = null;
-    Metadata metadata = new Metadata();
-    StringWriter sw = new StringWriter();
-    try {
-      if ("html".equals(format)) {
-        contentHandler = getHtmlHandler(sw);
-      } else if ("xml".equals(format)) {
-        contentHandler = getXmlContentHandler(sw);
-      } else if ("text".equals(format)) {
-        contentHandler = getTextContentHandler(sw);
-      } else if("none".equals(format)){
-        contentHandler = new DefaultHandler();        
+    return CompletableFuture.supplyAsync(() -> {
+      Map<String, Object> row = new HashMap<>();
+      DataSource<InputStream> dataSource = context.getDataSource();
+      InputStream is = dataSource.getData(context.getResolvedEntityAttribute(URL));
+      ContentHandler contentHandler = null;
+      Metadata metadata = new Metadata();
+      StringWriter sw = new StringWriter();
+      try {
+        if ("html".equals(format)) {
+          contentHandler = getHtmlHandler(sw);
+        } else if ("xml".equals(format)) {
+          contentHandler = getXmlContentHandler(sw);
+        } else if ("text".equals(format)) {
+          contentHandler = getTextContentHandler(sw);
+        } else if ("none".equals(format)) {
+          contentHandler = new DefaultHandler();
+        }
+      } catch (TransformerConfigurationException e) {
+        wrapAndThrow(SEVERE, e, "Unable to create content handler");
       }
-    } catch (TransformerConfigurationException e) {
-      wrapAndThrow(SEVERE, e, "Unable to create content handler");
-    }
-    Parser tikaParser = null;
-    if(parser.equals(AUTO_PARSER)){
-      tikaParser = new AutoDetectParser(tikaConfig);
-    } else {
-      tikaParser = context.getSolrCore().getResourceLoader().newInstance(parser, Parser.class);
-    }
-    try {
+      Parser tikaParser = null;
+      if (parser.equals(AUTO_PARSER)) {
+        tikaParser = new AutoDetectParser(tikaConfig);
+      } else {
+        tikaParser = context.getSolrCore().getResourceLoader().newInstance(parser, Parser.class);
+      }
+      try {
         ParseContext context = new ParseContext();
-        if ("identity".equals(htmlMapper)){
+        if ("identity".equals(htmlMapper)) {
           context.set(HtmlMapper.class, IdentityHtmlMapper.INSTANCE);
         }
         if (extractEmbedded) {
@@ -163,25 +164,46 @@ public class TikaEntityProcessor extends EntityProcessorBase {
         } else {
           context.set(Parser.class, EMPTY_PARSER);
         }
-        tikaParser.parse(is, contentHandler, metadata , context);
-    } catch (Exception e) {
-      if(SKIP.equals(onError)) {
-        throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW,
-            "Document skipped :" + e.getMessage());
+        tikaParser.parse(is, contentHandler, metadata, context);
+      } catch (Exception e) {
+        if (SKIP.equals(onError)) {
+          throw new DataImportHandlerException(DataImportHandlerException.SKIP_ROW,
+                  "Document skipped :" + e.getMessage());
+        }
+        wrapAndThrow(SEVERE, e, "Unable to read content");
       }
-      wrapAndThrow(SEVERE, e, "Unable to read content");
-    }
-    IOUtils.closeQuietly(is);
-    for (Map<String, String> field : context.getAllEntityFields()) {
-      if (!"true".equals(field.get("meta"))) continue;
-      String col = field.get(COLUMN);
-      String s = metadata.get(col);
-      if (s != null) row.put(col, s);
-    }
-    if(!"none".equals(format) ) row.put("text", sw.toString());
-    tryToAddLatLon(metadata, row);
-    done = true;
-    return row;
+      IOUtils.closeQuietly(is);
+      for (Map<String, String> field : context.getAllEntityFields()) {
+        if (!"true".equals(field.get("meta"))) continue;
+        String col = field.get(COLUMN);
+        String s = metadata.get(col);
+        if (s != null) row.put(col, s);
+      }
+      if (!"none".equals(format)) row.put("text", sw.toString());
+      tryToAddLatLon(metadata, row);
+      done = true;
+      return row;
+    });
+  }
+
+  @Override
+  public boolean hasNextRow() {
+    return !done;
+  }
+
+  @Override
+  public boolean hasNextModifiedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextDeletedRowKey() {
+    return false;
+  }
+
+  @Override
+  public boolean hasNextModifiedParentRowKey() {
+    return false;
   }
 
   private void tryToAddLatLon(Metadata metadata, Map<String, Object> row) {
