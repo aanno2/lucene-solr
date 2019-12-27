@@ -591,6 +591,11 @@ public class DocBuilder {
         } else {
           processRow.run();
         }
+        try {
+          Thread.sleep(1);
+        } catch (InterruptedException e) {
+          throw new IllegalStateException(e);
+        }
       }
     } finally {
       if (verboseDebug) {
