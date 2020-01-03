@@ -585,7 +585,7 @@ public class DocBuilder {
       for (BuildSingleDoc bsd = new BuildSingleDoc(doc).next(epw);
            bsd.loop; bsd = bsd.next(epw)) {
         ProcessRow processRow = new ProcessRow(bsd);
-        if (isRoot) {
+        if (false && isRoot) {
           bsd.doc = null;
           dataImporter.getExecutorService().submit(processRow);
         } else {
@@ -1049,16 +1049,7 @@ public class DocBuilder {
 
     public BuildSingleDoc next(EntityProcessorWrapper epw) {
       return new BuildSingleDoc(doc,
-              CompletableFuture.supplyAsync(() -> {
-                Map<String, Object> result = null;
-                synchronized (this) {
-                  result = epw.nextRow();
-                }
-                if (result == null) {
-                  loop = false;
-                }
-                return result;
-              }),
+              CompletableFuture.completedFuture(epw.nextRow()),
               loop);
     }
   }
