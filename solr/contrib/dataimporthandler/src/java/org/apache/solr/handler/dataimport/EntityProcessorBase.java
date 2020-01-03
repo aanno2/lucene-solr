@@ -33,7 +33,8 @@ import java.util.*;
  *
  * @since solr 1.3
  */
-public class EntityProcessorBase extends EntityProcessor {
+public class EntityProcessorBase implements EntityProcessor {
+
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected boolean isFirstInit = true;
@@ -54,7 +55,26 @@ public class EntityProcessorBase extends EntityProcessor {
 
   @Override
   public Object clone() {
-    EntityProcessorBase clone = (EntityProcessorBase) super.clone();
+    EntityProcessorBase clone = null;
+    try {
+      clone = (EntityProcessorBase) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalStateException(e);
+    }
+
+    /*
+    EntityProcessorBase clone = new EntityProcessorBase();
+
+    clone.isFirstInit = isFirstInit;
+    clone.entityName = entityName;
+    clone.context = context;
+    clone.rowIterator = rowIterator;
+    clone.query = query;
+    clone.onError = onError;
+    clone.cacheSupport = cacheSupport;
+    clone.zipper = zipper;
+    */
+
     return clone;
   }
 

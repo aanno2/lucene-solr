@@ -2,7 +2,7 @@ package org.apache.solr.handler.dataimport;
 
 import java.util.Map;
 
-public interface IEntityProcessor extends AutoCloseable {
+public interface IEntityProcessor extends AutoCloseable, Cloneable {
     /**
      * This method is called when it starts processing an entity. When it comes
      * back to the entity it is called again. So it can reset anything at that point.

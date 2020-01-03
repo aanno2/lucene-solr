@@ -37,7 +37,7 @@ import java.util.*;
  *
  * @since solr 1.4
  */
-public class EntityProcessorWrapper extends EntityProcessor {
+public class EntityProcessorWrapper implements EntityProcessor {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private EntityProcessor delegate;
@@ -63,9 +63,29 @@ public class EntityProcessorWrapper extends EntityProcessor {
 
   @Override
   public Object clone() {
-    EntityProcessorWrapper clone = (EntityProcessorWrapper) super.clone();
+    EntityProcessorWrapper clone = null;
+    try {
+      clone = (EntityProcessorWrapper) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalStateException(e);
+    }
     clone.delegate = (EntityProcessor) delegate.clone();
-    clone.children = new ArrayList<>(children);
+
+    /*
+    EntityProcessorWrapper clone = new EntityProcessorWrapper((EntityProcessor) delegate.clone(), entity, docBuilder);
+
+    clone.datasource = datasource;
+    clone.initialized = initialized;
+    clone.onError = onError;
+    clone.context = context;
+    clone.resolver = resolver;
+    clone.entityName = entityName;
+     */
+
+    clone.children = new ArrayList<>(children.size());
+    for (EntityProcessorWrapper c: children) {
+      clone.children.add((EntityProcessorWrapper) c.clone());
+    }
     if (transformers != null) {
       clone.transformers = new ArrayList<>(transformers);
     }

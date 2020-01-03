@@ -583,7 +583,7 @@ public class DocBuilder {
         }
       }
       AtomicBoolean loop = new AtomicBoolean(true);
-      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw, loop).next();
+      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, (EntityProcessorWrapper) epw.clone(), loop).next();
            bsd.loop.get(); bsd = bsd.next()) {
         ProcessRow processRow = new ProcessRow(bsd);
         if (false && isRoot) {

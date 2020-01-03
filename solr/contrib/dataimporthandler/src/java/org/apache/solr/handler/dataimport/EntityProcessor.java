@@ -36,7 +36,7 @@ import java.util.Map;
  *
  * @since solr 1.3
  */
-public abstract class EntityProcessor implements IEntityProcessor {
+public interface EntityProcessor extends IEntityProcessor {
 
   /**
    * Invoked after the transformers are invoked. EntityProcessors can add, remove or modify values
@@ -46,7 +46,7 @@ public abstract class EntityProcessor implements IEntityProcessor {
    * @since solr 1.4
    */
   @Override
-  public void postTransform(Map<String, Object> r) {
+  default void postTransform(Map<String, Object> r) {
   }
 
   /**
@@ -55,17 +55,8 @@ public abstract class EntityProcessor implements IEntityProcessor {
    * @since solr 1.4
    */
   @Override
-  public void close() {
+  default void close() {
     //no-op
   }
 
-  @Override
-  public Object clone() {
-    try {
-      EntityProcessor clone = (EntityProcessor) super.clone();
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      throw new IllegalStateException(e);
-    }
-  }
 }
