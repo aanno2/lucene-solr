@@ -250,7 +250,13 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
         new VariableResolver(), getDataSource(cdData), Context.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor() {
       private int count;
-      
+
+      @Override
+      public Object clone() {
+        EntityProcessorBase clone = (EntityProcessorBase) super.clone();
+        return clone;
+      }
+
       @Override
       protected Map<String, Object> readRow(Map<String, Object> record,
           String xpath) {

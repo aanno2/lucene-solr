@@ -74,6 +74,12 @@ public class TikaEntityProcessor extends EntityProcessorBase {
   private String spatialMetadataField;
 
   @Override
+  public Object clone() {
+    TikaEntityProcessor clone = (TikaEntityProcessor) super.clone();
+    return clone;
+  }
+
+  @Override
   public void init(Context context) {
     super.init(context);
     done = false;

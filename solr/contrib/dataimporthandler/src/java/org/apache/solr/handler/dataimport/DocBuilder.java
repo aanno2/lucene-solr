@@ -472,7 +472,7 @@ public class DocBuilder {
               bsd.loop.set(false);
             } else {
               int count = importStatistics.seenDocCount.incrementAndGet();
-              Entity entity = epw.getEntity();
+              Entity entity = bsd.epw.getEntity();
               try {
                 if (count > reqParams.getStart()) {
                   getDebugLogger().log(DIHLogLevels.ENABLE_LOGGING, null, null);
@@ -517,7 +517,7 @@ public class DocBuilder {
                     }
                     if (entity.getChildren() != null) {
                       vr.addNamespace(entity.getName(), arow);
-                      for (EntityProcessorWrapper child : epw.getChildren()) {
+                      for (EntityProcessorWrapper child : bsd.epw.getChildren()) {
                         if (childDoc != null) {
                           buildDocument(vr, childDoc,
                                   child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
@@ -583,8 +583,8 @@ public class DocBuilder {
         }
       }
       AtomicBoolean loop = new AtomicBoolean(true);
-      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, loop).next(epw);
-           bsd.loop.get(); bsd = bsd.next(epw)) {
+      for (BuildSingleDoc bsd = new BuildSingleDoc(doc, epw, loop).next();
+           bsd.loop.get(); bsd = bsd.next()) {
         ProcessRow processRow = new ProcessRow(bsd);
         if (false && isRoot) {
           bsd.doc = null;
@@ -1035,23 +1035,25 @@ public class DocBuilder {
   static class BuildSingleDoc {
 
     DocWrapper doc;
+    EntityProcessorWrapper epw;
     CompletableFuture<Map<String, Object>> arow;
     AtomicBoolean loop;
 
-    BuildSingleDoc(DocWrapper doc, AtomicBoolean loop) {
-      this(doc, null, loop);
+    BuildSingleDoc(DocWrapper doc, EntityProcessorWrapper epw, AtomicBoolean loop) {
+      this(doc, epw,null, loop);
     }
 
-    private BuildSingleDoc(DocWrapper doc, CompletableFuture<Map<String,Object>> arow, AtomicBoolean loop) {
+    private BuildSingleDoc(DocWrapper doc, EntityProcessorWrapper epw,CompletableFuture<Map<String,Object>> arow, AtomicBoolean loop) {
       this.doc = doc;
+      this.epw = epw;
       this.arow = arow;
       this.loop = loop;
     }
 
-    public BuildSingleDoc next(EntityProcessorWrapper epw) {
+    public BuildSingleDoc next() {
       final CompletableFuture<Map<String, Object>> row =
               CompletableFuture.completedFuture(epw.nextRow());
-      return new BuildSingleDoc(doc, row, loop);
+      return new BuildSingleDoc(doc, epw, row, loop);
     }
   }
 }

@@ -58,6 +58,12 @@ public class LineEntityProcessor extends EntityProcessorBase {
   private String url;
   private BufferedReader reader;
 
+  @Override
+  public Object clone() {
+    LineEntityProcessor clone = (LineEntityProcessor) super.clone();
+    return clone;
+  }
+
   /**
    * Parses each of the entity attributes.
    */

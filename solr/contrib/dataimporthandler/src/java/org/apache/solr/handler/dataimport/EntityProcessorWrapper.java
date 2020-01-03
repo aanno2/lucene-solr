@@ -30,10 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A Wrapper over {@link EntityProcessor} instance which performs transforms and handles multi-row outputs correctly.
@@ -62,6 +59,25 @@ public class EntityProcessorWrapper extends EntityProcessor {
     this.delegate = delegate;
     this.entity = entity;
     this.docBuilder = docBuilder;
+  }
+
+  @Override
+  public Object clone() {
+    EntityProcessorWrapper clone = (EntityProcessorWrapper) super.clone();
+    clone.delegate = (EntityProcessor) delegate.clone();
+    clone.children = new ArrayList<>(children);
+    if (transformers != null) {
+      clone.transformers = new ArrayList<>(transformers);
+    }
+    if (rowcache != null) {
+      clone.rowcache = new ArrayList<>(rowcache.size());
+      for (Map<String, Object> map: rowcache) {
+        if (map != null) {
+          clone.rowcache.add(new HashMap<>(map));
+        }
+      }
+    }
+    return clone;
   }
 
   @Override

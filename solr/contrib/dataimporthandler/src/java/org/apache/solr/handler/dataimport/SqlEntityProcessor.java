@@ -47,6 +47,12 @@ public class SqlEntityProcessor extends EntityProcessorBase {
   protected DataSource<Iterator<Map<String, Object>>> dataSource;
 
   @Override
+  public Object clone() {
+    SqlEntityProcessor clone = (SqlEntityProcessor) super.clone();
+    return clone;
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public void init(Context context) {
     super.init(context);

@@ -63,7 +63,13 @@ public class MailEntityProcessor extends EntityProcessorBase {
   public static interface CustomFilter {
     public SearchTerm getCustomSearch(Folder folder);
   }
-  
+
+  @Override
+  public Object clone() {
+    MailEntityProcessor clone = (MailEntityProcessor) super.clone();
+    return clone;
+  }
+
   public void init(Context context) {
     super.init(context);
     // set attributes using XXX getXXXFromContext(attribute, defaultValue);

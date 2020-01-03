@@ -75,7 +75,13 @@ public class SolrEntityProcessor extends EntityProcessorBase {
   private String[] fields;
   private String requestHandler;// 'qt' param
   private int timeout = TIMEOUT_SECS;
-  
+
+  @Override
+  public Object clone() {
+    EntityProcessorBase clone = (EntityProcessorBase) super.clone();
+    return clone;
+  }
+
   @Override
   public void destroy() {
     try {

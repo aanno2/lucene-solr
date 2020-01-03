@@ -42,7 +42,13 @@ public class MockSolrEntityProcessor extends SolrEntityProcessor {
   //  queryCount++;
   //  return getDocs(start, rows);
  // }
-  
+
+  @Override
+  public Object clone() {
+    MockSolrEntityProcessor clone = (MockSolrEntityProcessor) super.clone();
+    return clone;
+  }
+
   @Override
   protected void buildIterator() {
     if (rowIterator==null || (!rowIterator.hasNext() && ((SolrDocumentListIterator)rowIterator).hasMoreRows())){

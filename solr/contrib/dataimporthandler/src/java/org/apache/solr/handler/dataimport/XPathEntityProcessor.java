@@ -87,7 +87,13 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   protected Thread publisherThread;
 
   protected boolean reinitXPathReader = true;
-  
+
+  @Override
+  public Object clone() {
+    XPathEntityProcessor clone = (XPathEntityProcessor) super.clone();
+    return clone;
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public void init(Context context) {

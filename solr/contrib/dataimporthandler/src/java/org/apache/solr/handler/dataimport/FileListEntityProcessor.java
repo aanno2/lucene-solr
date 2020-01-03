@@ -112,6 +112,12 @@ public class FileListEntityProcessor extends EntityProcessorBase {
   private Pattern fileNamePattern, excludesPattern;
 
   @Override
+  public Object clone() {
+    FileListEntityProcessor clone = (FileListEntityProcessor) super.clone();
+    return clone;
+  }
+
+  @Override
   public void init(Context context) {
     super.init(context);
     fileName = context.getEntityAttribute(FILE_NAME);

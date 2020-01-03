@@ -31,6 +31,12 @@ public class TestSolrEntityProcessorUnit extends AbstractDataImportHandlerTestCa
 
   private static final class NoNextMockProcessor extends SolrEntityProcessor {
     @Override
+    public Object clone() {
+      NoNextMockProcessor clone = (NoNextMockProcessor) super.clone();
+      return clone;
+    }
+
+    @Override
     protected void nextPage() {
     }
   }

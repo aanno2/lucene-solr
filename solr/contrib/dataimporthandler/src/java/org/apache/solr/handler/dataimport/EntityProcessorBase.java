@@ -52,6 +52,11 @@ public class EntityProcessorBase extends EntityProcessor {
   
   private Zipper zipper;
 
+  @Override
+  public Object clone() {
+    EntityProcessorBase clone = (EntityProcessorBase) super.clone();
+    return clone;
+  }
 
   @Override
   public void init(Context context) {
