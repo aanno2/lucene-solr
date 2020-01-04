@@ -76,6 +76,10 @@ public class TikaEntityProcessor extends EntityProcessorBase {
   @Override
   public Object clone() {
     TikaEntityProcessor clone = (TikaEntityProcessor) super.clone();
+    clone.isFirstInit = true;
+    if (context != null) {
+      clone.init(context);
+    }
     return clone;
   }
 
