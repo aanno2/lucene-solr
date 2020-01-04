@@ -119,12 +119,16 @@ public class FileListEntityProcessor extends EntityProcessorBase {
 
   @Override
   public Object clone() {
+    /*
     FileListEntityProcessor clone = (FileListEntityProcessor) super.clone();
     // clone.isFirstInit = true;
     if (context != null) {
       clone.init(context);
     }
     return clone;
+    */
+    // No way to support clone
+    return this;
   }
 
   @Override
@@ -222,7 +226,7 @@ public class FileListEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public Map<String, Object> nextRow() {
+  public synchronized Map<String, Object> nextRow() {
     if (rowIterator != null)
       return getNext();
     List<Map<String, Object>> fileDetails = new ArrayList<>();
