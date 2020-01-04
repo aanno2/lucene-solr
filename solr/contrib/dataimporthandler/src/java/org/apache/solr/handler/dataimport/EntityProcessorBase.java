@@ -62,6 +62,10 @@ public class EntityProcessorBase implements EntityProcessor {
       throw new IllegalStateException(e);
     }
 
+    if (context != null) {
+      clone.context = (Context) context.clone();
+    }
+
     /*
     EntityProcessorBase clone = new EntityProcessorBase();
 

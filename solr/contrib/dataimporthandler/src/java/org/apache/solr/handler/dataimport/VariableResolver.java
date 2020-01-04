@@ -50,7 +50,7 @@ import static org.apache.solr.update.processor.TemplateUpdateProcessorFactory.Re
  * 
  * @since solr 1.3
  */
-public class VariableResolver {
+public class VariableResolver implements Cloneable {
   
   private static final Pattern DOT_PATTERN = Pattern.compile("[.]");
   private static final Pattern EVALUATOR_FORMAT_PATTERN = Pattern
@@ -76,6 +76,18 @@ public class VariableResolver {
   
   public VariableResolver(Map<String,Object> defaults) {
     rootNamespace = new HashMap<>(defaults);
+  }
+
+  @Override
+  public Object clone() {
+    try {
+      VariableResolver clone = (VariableResolver) super.clone();
+      clone.rootNamespace = new HashMap<>(rootNamespace);
+      clone.evaluators = new HashMap<>(evaluators);
+      return clone;
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalStateException(e);
+    }
   }
   
   /**

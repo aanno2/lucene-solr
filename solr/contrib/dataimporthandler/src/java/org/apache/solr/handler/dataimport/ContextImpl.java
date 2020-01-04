@@ -73,6 +73,15 @@ public class ContextImpl extends Context {
   }
 
   @Override
+  public Object clone() {
+    ContextImpl clone = (ContextImpl) super.clone();
+    clone.resolver = (VariableResolver) resolver.clone();
+    clone.lastException = null;
+    clone.entitySession = new HashMap<>(entitySession);
+    return clone;
+  }
+
+  @Override
   public String getEntityAttribute(String name) {
     return epw==null || epw.getEntity() == null ? null : epw.getEntity().getAllAttributes().get(name);
   }

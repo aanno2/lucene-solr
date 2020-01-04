@@ -195,6 +195,12 @@ public abstract class AbstractDataImportHandlerTestCase extends
     }
 
     @Override
+    public Object clone() {
+      TestContext clone = (TestContext) super.clone();
+      return clone;
+    }
+
+    @Override
     public String getEntityAttribute(String name) {
       return entityAttrs == null ? delegate.getEntityAttribute(name) : entityAttrs.get(name);
     }
