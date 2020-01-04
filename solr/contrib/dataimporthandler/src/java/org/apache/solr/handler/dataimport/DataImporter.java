@@ -517,7 +517,7 @@ public class DataImporter {
   public ExecutorService getExecutorService() {
     synchronized (this) {
       if (executorService == null) {
-        executorService = ExecutorUtil.newMDCAwareFixedThreadPool(4, new NamedThreadFactory("DataImporter-"));
+        executorService = ExecutorUtil.newMDCAwareFixedThreadPool(4, new NamedThreadFactory("DataImporter"));
       }
     }
     return executorService;

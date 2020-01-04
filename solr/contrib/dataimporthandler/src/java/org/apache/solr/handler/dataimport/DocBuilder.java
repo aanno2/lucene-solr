@@ -586,7 +586,7 @@ public class DocBuilder {
       for (BuildSingleDoc bsd = new BuildSingleDoc(doc, (EntityProcessorWrapper) epw.clone(), loop).next();
            bsd.loop.get(); bsd = bsd.next()) {
         ProcessRow processRow = new ProcessRow(bsd);
-        if (false && isRoot) {
+        if (isRoot) {
           bsd.doc = null;
           dataImporter.getExecutorService().submit(processRow);
         } else {

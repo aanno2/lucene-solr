@@ -18,6 +18,7 @@ package org.apache.solr.handler.dataimport;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.invoke.MethodHandles;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.solr.util.DateMathParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -60,6 +63,9 @@ import org.apache.solr.util.DateMathParser;
  * @see Pattern
  */
 public class FileListEntityProcessor extends EntityProcessorBase {
+
+  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   /**
    * A regex pattern to identify files given in data-config.xml after resolving any variables 
    */
@@ -114,6 +120,10 @@ public class FileListEntityProcessor extends EntityProcessorBase {
   @Override
   public Object clone() {
     FileListEntityProcessor clone = (FileListEntityProcessor) super.clone();
+    // clone.isFirstInit = true;
+    if (context != null) {
+      clone.init(context);
+    }
     return clone;
   }
 

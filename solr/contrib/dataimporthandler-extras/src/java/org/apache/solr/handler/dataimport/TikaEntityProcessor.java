@@ -28,6 +28,8 @@ import org.apache.tika.parser.html.IdentityHtmlMapper;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.ContentHandlerDecorator;
 import org.apache.tika.sax.XHTMLContentHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -43,6 +45,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -63,6 +66,9 @@ import static org.apache.solr.handler.dataimport.XPathEntityProcessor.URL;
  * @since solr 3.1
  */
 public class TikaEntityProcessor extends EntityProcessorBase {
+
+  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private static Parser EMPTY_PARSER = new EmptyParser();
   private TikaConfig tikaConfig;
   private String format = "text";
@@ -190,6 +196,7 @@ public class TikaEntityProcessor extends EntityProcessorBase {
     if(!"none".equals(format) ) row.put("text", sw.toString());
     tryToAddLatLon(metadata, row);
     done = true;
+    log.warn("next tika: " + row.get("title"));
     return row;
   }
 

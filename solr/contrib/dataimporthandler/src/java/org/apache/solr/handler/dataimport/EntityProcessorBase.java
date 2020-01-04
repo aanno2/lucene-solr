@@ -146,8 +146,14 @@ public class EntityProcessorBase implements EntityProcessor {
   public Map<String, Object> nextRow() {
     return null;// do not do anything
   }
-  
+
   protected Map<String, Object> getNext() {
+    Map<String, Object> result = _getNext();
+    log.warn("next file: " + result);
+    return result;
+  }
+
+  private Map<String, Object> _getNext() {
     if(zipper!=null){
       return zipper.supplyNextChild(rowIterator);
     }else{
