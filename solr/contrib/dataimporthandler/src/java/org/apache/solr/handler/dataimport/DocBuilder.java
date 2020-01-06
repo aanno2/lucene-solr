@@ -453,9 +453,11 @@ public class DocBuilder {
       class ProcessRow implements Runnable {
 
         private BuildSingleDoc bsd;
+        private IVariableResolver vr;
 
-        ProcessRow(BuildSingleDoc bsd) {
+        ProcessRow(BuildSingleDoc bsd, IVariableResolver vr) {
           this.bsd = bsd;
+          this.vr = vr;
         }
 
         @Override
@@ -584,7 +586,7 @@ public class DocBuilder {
       AtomicBoolean loop = new AtomicBoolean(true);
       for (BuildSingleDoc bsd = new BuildSingleDoc(doc, (EntityProcessorWrapper) epw.clone(), loop).next();
            bsd.loop.get(); bsd = bsd.next()) {
-        ProcessRow processRow = new ProcessRow(bsd);
+        ProcessRow processRow = new ProcessRow(bsd, vr);
         if (isRoot) {
           bsd.doc = null;
           dataImporter.getExecutorService().submit(processRow);

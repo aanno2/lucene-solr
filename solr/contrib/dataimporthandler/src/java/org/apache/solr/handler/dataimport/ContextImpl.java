@@ -72,6 +72,10 @@ public class ContextImpl extends Context {
     parent = parentContext;
   }
 
+  /**
+   * @deprecated Unsafe, to be removed
+   */
+  @Deprecated
   public ContextImpl(ContextImpl toCopy, IVariableResolver newResolver) {
     this(toCopy.epw, newResolver, toCopy.ds, toCopy.currProcess, toCopy.globalSession,
             toCopy.parent, toCopy.docBuilder);
