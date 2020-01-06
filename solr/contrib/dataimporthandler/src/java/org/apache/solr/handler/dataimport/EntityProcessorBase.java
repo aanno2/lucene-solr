@@ -189,7 +189,11 @@ public class EntityProcessorBase implements EntityProcessor {
     cacheSupport = null;
   }
 
-  
+  @Override
+  public Context getContext() {
+    return context;
+  }
+
 
   public static final String TRANSFORMER = "transformer";
 
