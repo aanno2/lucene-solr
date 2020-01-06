@@ -42,7 +42,7 @@ public class TestEntityProcessorBase extends AbstractDataImportHandlerTestCase {
     fields.add(getField("A", null, null, null, null));
     fields.add(getField("B", null, null, null, null));
 
-    Context context = getContext(null, null, new MockDataSource(), Context.FULL_DUMP,
+    IContext context = getContext(null, null, new MockDataSource(), IContext.FULL_DUMP,
             fields, entity);
     Map<String, Object> src = new HashMap<>();
     src.put("A", "NA");
@@ -58,7 +58,7 @@ public class TestEntityProcessorBase extends AbstractDataImportHandlerTestCase {
   static class T1 extends Transformer {
 
     @Override
-    public Object transformRow(Map<String, Object> aRow, Context context) {
+    public Object transformRow(Map<String, Object> aRow, IContext context) {
       aRow.put("T1", "T1 called");
       return aRow;
 
@@ -68,7 +68,7 @@ public class TestEntityProcessorBase extends AbstractDataImportHandlerTestCase {
   static class T2 extends Transformer {
 
     @Override
-    public Object transformRow(Map<String, Object> aRow, Context context) {
+    public Object transformRow(Map<String, Object> aRow, IContext context) {
       aRow.put("T2", "T2 called");
       return aRow;
     }

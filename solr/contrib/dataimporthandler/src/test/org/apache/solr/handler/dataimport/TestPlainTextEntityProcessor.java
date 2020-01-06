@@ -152,7 +152,7 @@ public class TestPlainTextEntityProcessor extends AbstractDataImportHandlerTestC
     static String s = "hello world";
 
     @Override
-    public void init(Context context, Properties initProps) {
+    public void init(IContext context, Properties initProps) {
 
     }
 

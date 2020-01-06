@@ -99,7 +99,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
   }
 
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     rowcache = null;
     IVariableResolver resolver = getContext().getVariableResolver();
     if (entityName == null) {
@@ -112,7 +112,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
 
   @SuppressWarnings("unchecked")
   void loadTransformers() {
-    Context context = getContext();
+    IContext context = getContext();
     String transClasses = context.getEntityAttribute(TRANSFORMER);
 
     if (transClasses == null) {
@@ -201,7 +201,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
     }
 
     @Override
-    public Object transformRow(Map<String, Object> aRow, Context context) {
+    public Object transformRow(Map<String, Object> aRow, IContext context) {
       try {
         return meth.invoke(o, aRow);
       } catch (Exception e) {
@@ -228,7 +228,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
     Map<String, Object> transformedRow = row;
     List<Map<String, Object>> rows = null;
     boolean stopTransform = checkStopTransform(row);
-    Context context = getContext();
+    IContext context = getContext();
     IVariableResolver resolver = context.getVariableResolver();
     for (Transformer t : transformers) {
       if (stopTransform) break;
@@ -350,7 +350,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
     return getContext().getVariableResolver();
   }
 
-  public Context getContext() {
+  public IContext getContext() {
     return delegate.getContext();
   }
 

@@ -170,7 +170,7 @@ class DebugLogger {
   DataSource wrapDs(final DataSource ds) {
     return new DataSource() {
       @Override
-      public void init(Context context, Properties initProps) {
+      public void init(IContext context, Properties initProps) {
         ds.init(context, initProps);
       }
 
@@ -207,7 +207,7 @@ class DebugLogger {
   Transformer wrapTransformer(final Transformer t) {
     return new Transformer() {
       @Override
-      public Object transformRow(Map<String, Object> row, Context context) {
+      public Object transformRow(Map<String, Object> row, IContext context) {
         log(DIHLogLevels.PRE_TRANSFORMER_ROW, null, row);
         String tName = getTransformerName(t);
         Object result = null;

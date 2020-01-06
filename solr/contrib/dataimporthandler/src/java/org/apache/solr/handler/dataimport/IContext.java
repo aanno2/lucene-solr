@@ -113,7 +113,7 @@ public interface IContext {
      *
      * @return parent entity's Context
      */
-    Context getParentContext();
+    IContext getParentContext();
 
     /**
      * The request parameters passed over HTTP for this command the values in the

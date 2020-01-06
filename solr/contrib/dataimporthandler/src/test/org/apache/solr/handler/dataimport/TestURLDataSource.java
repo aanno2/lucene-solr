@@ -28,8 +28,8 @@ public class TestURLDataSource extends AbstractDataImportHandlerTestCase {
   private List<Map<String, String>> fields = new ArrayList<>();
   private URLDataSource dataSource = new URLDataSource();
   private IVariableResolver IVariableResolver = new VariableResolver();
-  private Context context = AbstractDataImportHandlerTestCase.getContext(null, IVariableResolver,
-      dataSource, Context.FULL_DUMP, fields, null);
+  private IContext context = AbstractDataImportHandlerTestCase.getContext(null, IVariableResolver,
+      dataSource, IContext.FULL_DUMP, fields, null);
   private Properties initProps = new Properties();
   
   @Test

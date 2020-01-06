@@ -67,8 +67,8 @@ public class TestJdbcDataSource extends AbstractDataImportHandlerTestCase {
   private JdbcDataSource jdbcDataSource = new JdbcDataSource();
   List<Map<String, String>> fields = new ArrayList<>();
 
-  Context context = AbstractDataImportHandlerTestCase.getContext(null, null,
-          jdbcDataSource, Context.FULL_DUMP, fields, null);
+  IContext context = AbstractDataImportHandlerTestCase.getContext(null, null,
+          jdbcDataSource, IContext.FULL_DUMP, fields, null);
 
   Properties props = new Properties();
 
@@ -576,8 +576,8 @@ public class TestJdbcDataSource extends AbstractDataImportHandlerTestCase {
     f.put("type", "float");
     flds.add(f);
 
-    Context c = getContext(null, null,
-            dataSource, Context.FULL_DUMP, flds, null);
+    IContext c = getContext(null, null,
+            dataSource, IContext.FULL_DUMP, flds, null);
     dataSource.init(c, p);
     Iterator<Map<String, Object>> i = dataSource
             .getData("select make,model,year,msrp,trim_id from atrimlisting where make='Acura'");

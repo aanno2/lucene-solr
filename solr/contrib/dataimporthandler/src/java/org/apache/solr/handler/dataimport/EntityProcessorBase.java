@@ -41,7 +41,7 @@ public class EntityProcessorBase implements EntityProcessor {
 
   protected String entityName;
 
-  protected Context context;
+  protected IContext context;
 
   protected Iterator<Map<String, Object>> rowIterator;
 
@@ -79,7 +79,7 @@ public class EntityProcessorBase implements EntityProcessor {
   }
 
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     this.context = context;
     if (isFirstInit) {
       firstInit(context);
@@ -98,7 +98,7 @@ public class EntityProcessorBase implements EntityProcessor {
    * it's necessary to call it from the overridden method,
    * otherwise it throws NPE on accessing zipper from nextRow()
    */
-  protected void firstInit(Context context) {
+  protected void firstInit(IContext context) {
     entityName = context.getEntityAttribute("name");
     String s = context.getEntityAttribute(ON_ERROR);
     if (s != null) onError = s;
@@ -111,7 +111,7 @@ public class EntityProcessorBase implements EntityProcessor {
     isFirstInit = false;
   }
 
-    protected void initCache(Context context) {
+    protected void initCache(IContext context) {
         String cacheImplName = context
             .getResolvedEntityAttribute(DIHCacheSupport.CACHE_IMPL);
 
@@ -190,7 +190,7 @@ public class EntityProcessorBase implements EntityProcessor {
   }
 
   @Override
-  public Context getContext() {
+  public IContext getContext() {
     return context;
   }
 

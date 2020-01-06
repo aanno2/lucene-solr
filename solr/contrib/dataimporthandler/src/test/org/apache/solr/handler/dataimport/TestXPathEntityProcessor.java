@@ -52,8 +52,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
     fields.add(createMap("column", "title", "xpath", "/catalog/cd/title"));
     fields.add(createMap("column", "artist", "xpath", "/catalog/cd/artist"));
     fields.add(createMap("column", "year", "xpath", "/catalog/cd/year"));
-    Context c = getContext(null,
-            new VariableResolver(), getDataSource(cdData), Context.FULL_DUMP, fields, entityAttrs);
+    IContext c = getContext(null,
+            new VariableResolver(), getDataSource(cdData), IContext.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor();
     xPathEntityProcessor.init(c);
     List<Map<String, Object>> result = new ArrayList<>();
@@ -75,8 +75,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
             XPathEntityProcessor.FOR_EACH, "/root");
     List fields = new ArrayList();
     fields.add(createMap("column", "a", "xpath", "/root/a", DataImporter.MULTI_VALUED, "true"));
-    Context c = getContext(null,
-            new VariableResolver(), getDataSource(testXml), Context.FULL_DUMP, fields, entityAttrs);
+    IContext c = getContext(null,
+            new VariableResolver(), getDataSource(testXml), IContext.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor();
     xPathEntityProcessor.init(c);
     List<Map<String, Object>> result = new ArrayList<>();
@@ -104,8 +104,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
     fields.add(createMap("column", "s1dataB", "xpath", "/documents/doc/sec1/s1dataB", DataImporter.MULTI_VALUED, "true")); 
     fields.add(createMap("column", "s1dataC", "xpath", "/documents/doc/sec1/s1dataC", DataImporter.MULTI_VALUED, "true")); 
     
-    Context c = getContext(null,
-            new VariableResolver(), getDataSource(textMultipleDocuments), Context.FULL_DUMP, fields, entityAttrs);
+    IContext c = getContext(null,
+            new VariableResolver(), getDataSource(textMultipleDocuments), IContext.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor();
     xPathEntityProcessor.init(c);
     List<Map<String, Object>> result = new ArrayList<>();
@@ -221,8 +221,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
             XPathEntityProcessor.FOR_EACH, "/root");
     List fields = new ArrayList();
     fields.add(createMap("column", "a", "xpath", "/root/a" ,"flatten","true"));
-    Context c = getContext(null,
-            new VariableResolver(), getDataSource(testXmlFlatten), Context.FULL_DUMP, fields, entityAttrs);
+    IContext c = getContext(null,
+            new VariableResolver(), getDataSource(testXmlFlatten), IContext.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor();
     xPathEntityProcessor.init(c);
     Map<String, Object> result = null;
@@ -246,8 +246,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
     fields.add(createMap("column", "title", "xpath", "/catalog/cd/title"));
     fields.add(createMap("column", "artist", "xpath", "/catalog/cd/artist"));
     fields.add(createMap("column", "year", "xpath", "/catalog/cd/year"));
-    Context c = getContext(null,
-        new VariableResolver(), getDataSource(cdData), Context.FULL_DUMP, fields, entityAttrs);
+    IContext c = getContext(null,
+        new VariableResolver(), getDataSource(cdData), IContext.FULL_DUMP, fields, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor() {
       private int count;
 
@@ -345,8 +345,8 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
     Map entityAttrs = createMap("name", "e",
             XPathEntityProcessor.USE_SOLR_ADD_SCHEMA, "true", "xsl", ""
             + new File(tmpdir, "x.xsl").toURI(), "url", "cd.xml");
-    Context c = getContext(null,
-            new VariableResolver(), getDataSource(cdData), Context.FULL_DUMP, null, entityAttrs);
+    IContext c = getContext(null,
+            new VariableResolver(), getDataSource(cdData), IContext.FULL_DUMP, null, entityAttrs);
     XPathEntityProcessor xPathEntityProcessor = new XPathEntityProcessor();
     xPathEntityProcessor.init(c);
     List<Map<String, Object>> result = new ArrayList<>();
@@ -366,7 +366,7 @@ public class TestXPathEntityProcessor extends AbstractDataImportHandlerTestCase 
     return new DataSource<Reader>() {
 
       @Override
-      public void init(Context context, Properties initProps) {
+      public void init(IContext context, Properties initProps) {
       }
 
       @Override

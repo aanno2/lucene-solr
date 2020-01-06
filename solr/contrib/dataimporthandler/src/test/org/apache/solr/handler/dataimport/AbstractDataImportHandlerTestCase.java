@@ -140,7 +140,7 @@ public abstract class AbstractDataImportHandlerTestCase extends
                                        String currProcess, final List<Map<String, String>> entityFields,
                                        final Map<String, String> entityAttrs) {
     if (resolver == null) resolver = new VariableResolver();
-    final Context delegate = new ContextImpl(parent, resolver,
+    final IContext delegate = new ContextImpl(parent, resolver,
             parentDataSource, currProcess,
         new HashMap<>(), null, null);
     return new TestContext(entityAttrs, delegate, entityFields, parent == null);
@@ -181,12 +181,12 @@ public abstract class AbstractDataImportHandlerTestCase extends
   
   static class TestContext extends Context {
     private final Map<String, String> entityAttrs;
-    private final Context delegate;
+    private final IContext delegate;
     private final List<Map<String, String>> entityFields;
     private final boolean root;
     String script,scriptlang;
 
-    public TestContext(Map<String, String> entityAttrs, Context delegate,
+    public TestContext(Map<String, String> entityAttrs, IContext delegate,
                        List<Map<String, String>> entityFields, boolean root) {
       this.entityAttrs = entityAttrs;
       this.delegate = delegate;
@@ -252,7 +252,7 @@ public abstract class AbstractDataImportHandlerTestCase extends
     }
 
     @Override
-    public Context getParentContext() {
+    public IContext getParentContext() {
       return delegate.getParentContext();
     }
 

@@ -35,12 +35,12 @@ import java.util.Properties;
  */
 public class ContentStreamDataSource extends DataSource<Reader> {
 
-  private Context context;
+  private IContext context;
   private ContentStream contentStream;
   private Reader reader;
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
     this.context = (ContextImpl) context;
   }
 

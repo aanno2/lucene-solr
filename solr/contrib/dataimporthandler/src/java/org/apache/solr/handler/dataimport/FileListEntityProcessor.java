@@ -132,7 +132,7 @@ public class FileListEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     fileName = context.getEntityAttribute(FILE_NAME);
     if (fileName != null) {

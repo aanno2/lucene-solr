@@ -86,7 +86,7 @@ public interface DIHWriter {
    *  Provide context information for this writer.  init() should be called before using the writer.
    * </p>
    */
-  public void init(Context context) ;
+  public void init(IContext context) ;
 
 
   /**

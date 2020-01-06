@@ -367,7 +367,7 @@ public class DataImporter {
     return store.get(key);
   }
 
-  public DataSource getDataSourceInstance(Entity key, String name, Context ctx) {
+  public DataSource getDataSourceInstance(Entity key, String name, IContext ctx) {
     Map<String,String> p = requestLevelDataSourceProps.get(name);
     if (p == null)
       p = config.getDataSources().get(name);

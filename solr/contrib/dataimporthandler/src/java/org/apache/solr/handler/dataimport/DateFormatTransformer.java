@@ -43,7 +43,7 @@ public class DateFormatTransformer extends Transformer {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Object transformRow(Map<String, Object> aRow, Context context) {
+  public Object transformRow(Map<String, Object> aRow, IContext context) {
 
     for (Map<String, String> map : context.getAllEntityFields()) {
       Locale locale = Locale.ENGLISH; // we default to ENGLISH for dates for full Java 9 compatibility

@@ -85,7 +85,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
     vr.addNamespace("a",m);
     List<Object> l = (new Evaluator() {      
       @Override
-      public String evaluate(String expression, Context context) {
+      public String evaluate(String expression, IContext context) {
         return null;
       }
     }).parseParams(" 1 , a.b, 'hello!', 'ds,o,u\'za',",vr);
@@ -119,7 +119,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
   public void testDateFormatEvaluator() {
     Evaluator dateFormatEval = new DateFormatEvaluator();
     ContextImpl context = new ContextImpl(null, resolver, null,
-        Context.FULL_DUMP, Collections.<String,Object> emptyMap(), null, null);
+            IContext.FULL_DUMP, Collections.<String,Object> emptyMap(), null, null);
     
     Locale rootLocale = Locale.ROOT;
     Locale defaultLocale = Locale.getDefault();
@@ -173,7 +173,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
   }
 
   private void runTests(Map<String, String> tests, Evaluator evaluator) {
-    ContextImpl ctx = new ContextImpl(null, resolver, null, Context.FULL_DUMP, Collections.<String, Object>emptyMap(), null, null);    
+    ContextImpl ctx = new ContextImpl(null, resolver, null, IContext.FULL_DUMP, Collections.<String, Object>emptyMap(), null, null);
     for (Map.Entry<String, String> entry : tests.entrySet()) {
       Map<String, Object> values = new HashMap<>();
       values.put("key", entry.getKey());

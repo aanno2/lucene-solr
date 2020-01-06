@@ -45,7 +45,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER));
     l.add(createMap("column", "localizedNum",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER, NumberFormatTransformer.LOCALE, "de-DE"));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String,Object> m = createMap("num", "123" + GROUPING_SEP + "567", "localizedNum", "123" + GERMAN_GROUPING_SEP + "567");
     new NumberFormatTransformer().transformRow(m, c);
     assertEquals(123567L, m.get("num"));
@@ -69,7 +69,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("e", row);
 
-    Context context = getContext(null, resolver, null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, resolver, null, IContext.FULL_DUMP, fields, null);
     new NumberFormatTransformer().transformRow(row, context);
 
     List<Long> output = new ArrayList<>();
@@ -86,7 +86,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + GROUPING_SEP + "5a67");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -97,7 +97,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + GROUPING_SEP + "567b");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -108,7 +108,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.CURRENCY));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + GROUPING_SEP + "567b");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -119,7 +119,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.PERCENT));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + GROUPING_SEP + "5a67");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -130,7 +130,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.CURRENCY));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + DECIMAL_SEP + "456" + DECIMAL_SEP + "789");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -141,7 +141,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + DECIMAL_SEP + "456" + DECIMAL_SEP + "789");
     new NumberFormatTransformer().transformRow(m, c);
   }
@@ -152,7 +152,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     List<Map<String, String>> l = new ArrayList<>();
     l.add(createMap("column", "num",
             NumberFormatTransformer.FORMAT_STYLE, NumberFormatTransformer.NUMBER));
-    Context c = getContext(null, null, null, Context.FULL_DUMP, l, null);
+    IContext c = getContext(null, null, null, IContext.FULL_DUMP, l, null);
     Map<String, Object> m = createMap("num", "123" + GROUPING_SEP + GROUPING_SEP + "789");
     new NumberFormatTransformer().transformRow(m, c);
     assertEquals(123789L, m.get("num"));

@@ -70,7 +70,7 @@ public class JdbcDataSource extends
   private int maxRows = 0;
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
     resolveVariables(context, initProps);
     initProps = decryptPwd(context, initProps);
     Object o = initProps.get(CONVERT_TYPE);
@@ -113,7 +113,7 @@ public class JdbcDataSource extends
     }
   }
 
-  private Properties decryptPwd(Context context, Properties initProps) {
+  private Properties decryptPwd(IContext context, Properties initProps) {
     String encryptionKey = initProps.getProperty("encryptKeyFile");
     if (initProps.getProperty("password") != null && encryptionKey != null) {
       // this means the password is encrypted and use the file to decode it
@@ -141,7 +141,7 @@ public class JdbcDataSource extends
     return initProps;
   }
 
-  protected Callable<Connection> createConnectionFactory(final Context context,
+  protected Callable<Connection> createConnectionFactory(final IContext context,
                                        final Properties initProps) {
 //    final VariableResolver resolver = context.getVariableResolver();
     final String jndiName = initProps.getProperty(JNDI_NAME);
@@ -266,7 +266,7 @@ public class JdbcDataSource extends
     };
   }
 
-  private void resolveVariables(Context ctx, Properties initProps) {
+  private void resolveVariables(IContext ctx, Properties initProps) {
     for (Map.Entry<Object, Object> entry : initProps.entrySet()) {
       if (entry.getValue() != null) {
         entry.setValue(ctx.replaceTokens((String) entry.getValue()));

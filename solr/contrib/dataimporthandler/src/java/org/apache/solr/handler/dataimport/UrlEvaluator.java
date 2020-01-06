@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class UrlEvaluator extends Evaluator {
   @Override
-  public String evaluate(String expression, Context context) {
+  public String evaluate(String expression, IContext context) {
     List<Object> l = parseParams(expression, context.getVariableResolver());
     if (l.size() != 1) {
       throw new DataImportHandlerException(SEVERE, "'encodeUrl' must have at least one parameter ");

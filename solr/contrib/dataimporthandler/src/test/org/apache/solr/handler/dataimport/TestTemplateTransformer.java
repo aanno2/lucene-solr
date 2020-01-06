@@ -62,8 +62,8 @@ public class TestTemplateTransformer extends AbstractDataImportHandlerTestCase {
     resolver.addNamespace("e", row);
     Map<String, String> entityAttrs = createMap("name", "e");
 
-    Context context = getContext(null, resolver,
-            null, Context.FULL_DUMP, fields, entityAttrs);
+    IContext context = getContext(null, resolver,
+            null, IContext.FULL_DUMP, fields, entityAttrs);
     new TemplateTransformer().transformRow(row, context);
     assertEquals("Mangar, Shalin Shekhar", row.get("name"));
     assertEquals("Mr Mangar, Shalin Shekhar", row.get("mrname"));
@@ -96,8 +96,8 @@ public class TestTemplateTransformer extends AbstractDataImportHandlerTestCase {
     resolver.addNamespace("e", row);
     Map<String, String> entityAttrs = createMap("date", "e");
       
-    Context context = getContext(null, resolver,
-                                 null, Context.FULL_DUMP, fields, entityAttrs);
+    IContext context = getContext(null, resolver,
+                                 null, IContext.FULL_DUMP, fields, entityAttrs);
     new TemplateTransformer().transformRow(row, context);
     assertTrue( row.get( "date" ) instanceof List );
     

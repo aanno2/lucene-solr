@@ -287,7 +287,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
 
   public static class MockTransformer extends Transformer {
     @Override
-    public Object transformRow(Map<String, Object> row, Context context) {
+    public Object transformRow(Map<String, Object> row, IContext context) {
       assertTrue("Context gave incorrect data source", context.getDataSource("mockDs") instanceof MockDataSource2);
       return row;
     }
@@ -295,7 +295,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
 
   public static class AddDynamicFieldTransformer extends Transformer  {
     @Override
-    public Object transformRow(Map<String, Object> row, Context context) {
+    public Object transformRow(Map<String, Object> row, IContext context) {
       // Add a dynamic field
       row.put("dynamic_s", "test");
       return row;
@@ -304,7 +304,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
 
   public static class ForcedExceptionTransformer extends Transformer {
     @Override
-    public Object transformRow(Map<String, Object> row, Context context) {
+    public Object transformRow(Map<String, Object> row, IContext context) {
       throw new DataImportHandlerException(DataImportHandlerException.SEVERE, "ForcedException");
     }
   }
@@ -317,7 +317,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
     public static boolean executed = false;
 
     @Override
-    public void onEvent(Context ctx) {
+    public void onEvent(IContext ctx) {
       executed = true;
     }
   }
@@ -326,7 +326,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
     public static boolean executed = false;
 
     @Override
-    public void onEvent(Context ctx) {
+    public void onEvent(IContext ctx) {
       executed = true;
     }
   }
@@ -336,7 +336,7 @@ public class TestDocBuilder2 extends AbstractDataImportHandlerTestCase {
     public static Exception lastException = null;
 
     @Override
-    public void onEvent(Context ctx) {
+    public void onEvent(IContext ctx) {
       executed = true;
       lastException = ((ContextImpl) ctx).getLastException();
     }

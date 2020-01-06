@@ -54,7 +54,7 @@ public class SqlEntityProcessor extends EntityProcessorBase {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     dataSource = context.getDataSource();
   }
@@ -118,10 +118,10 @@ public class SqlEntityProcessor extends EntityProcessorBase {
 
   public String getQuery() {
     String queryString = context.getEntityAttribute(QUERY);
-    if (Context.FULL_DUMP.equals(context.currentProcess())) {
+    if (IContext.FULL_DUMP.equals(context.currentProcess())) {
       return queryString;
     }
-    if (Context.DELTA_DUMP.equals(context.currentProcess())) {
+    if (IContext.DELTA_DUMP.equals(context.currentProcess())) {
       String deltaImportQuery = context.getEntityAttribute(DELTA_IMPORT_QUERY);
       if(deltaImportQuery != null) return deltaImportQuery;
     }

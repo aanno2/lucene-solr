@@ -43,7 +43,7 @@ public class PlainTextEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     ended = false;
   }

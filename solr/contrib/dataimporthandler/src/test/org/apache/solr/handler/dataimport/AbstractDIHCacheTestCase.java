@@ -226,9 +226,9 @@ public class AbstractDIHCacheTestCase {
     return sb.toString();
   }
 
-  public static Context getContext(final Map<String, String> entityAttrs) {
+  public static IContext getContext(final Map<String, String> entityAttrs) {
     IVariableResolver resolver = new VariableResolver();
-    final Context delegate = new ContextImpl(null, resolver, null, null, new HashMap<String, Object>(), null, null);
+    final IContext delegate = new ContextImpl(null, resolver, null, null, new HashMap<String, Object>(), null, null);
     return new TestContext(entityAttrs, delegate, null, true);
   }
 

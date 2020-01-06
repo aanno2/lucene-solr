@@ -41,7 +41,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     List<Map<String, String>> fields = new ArrayList<>();
     // <field column="col1" sourceColName="a" splitBy="," />
     fields.add(getField("col1", "string", null, "a", ","));
-    Context context = getContext(null, null, null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, null, null, IContext.FULL_DUMP, fields, null);
 
     Map<String, Object> src = new HashMap<>();
     src.put("a", "a,bb,cc,d");
@@ -61,7 +61,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     m.put(GROUP_NAMES,",firstName,lastName");
     m.put(REGEX,"(\\w*) (\\w*) (\\w*)");
     fields.add(m);
-    Context context = getContext(null, null, null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, null, null, IContext.FULL_DUMP, fields, null);
     Map<String, Object> src = new HashMap<>();
     src.put("fullName", "Mr Noble Paul");
 
@@ -89,7 +89,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     Map<String, String> fld = getField("name", "string", "'", null, null);
     fld.put(REPLACE_WITH, "''");
     fields.add(fld);
-    Context context = getContext(null, null, null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, null, null, IContext.FULL_DUMP, fields, null);
 
     Map<String, Object> src = new HashMap<>();
     String s = "D'souza";
@@ -103,7 +103,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     fld.put(REPLACE_WITH, "_");
     fields.clear();
     fields.add(fld);
-    context = getContext(null, null, null, Context.FULL_DUMP, fields, null);
+    context = getContext(null, null, null, IContext.FULL_DUMP, fields, null);
     src.clear();
     src.put("title", "value with spaces"); // a value which will match the regex
     result = new RegexTransformer().transformRow(src, context);
@@ -151,7 +151,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("e", row);
     Map<String, String> eAttrs = createMap("name", "e");
-    Context context = getContext(null, resolver, null, Context.FULL_DUMP, fields, eAttrs);
+    IContext context = getContext(null, resolver, null, IContext.FULL_DUMP, fields, eAttrs);
 
     Map<String, Object> result = new RegexTransformer().transformRow(row, context);
     assertEquals(6, result.size());
@@ -169,8 +169,8 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
 //    <field column="participant" sourceColName="person" regex="(.*)" />
     Map<String, String> fld = getField("participant", null, "(.*)", "person", null);
     fields.add(fld);
-    Context context = getContext(null, null,
-            null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, null,
+            null, IContext.FULL_DUMP, fields, null);
 
     ArrayList<String> strings = new ArrayList<>();
     strings.add("hello");

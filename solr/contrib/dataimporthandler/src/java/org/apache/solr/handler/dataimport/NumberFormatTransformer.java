@@ -45,7 +45,7 @@ public class NumberFormatTransformer extends Transformer {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Object transformRow(Map<String, Object> row, Context context) {
+  public Object transformRow(Map<String, Object> row, IContext context) {
     for (Map<String, String> fld : context.getAllEntityFields()) {
       String style = context.replaceTokens(fld.get(FORMAT_STYLE));
       if (style != null) {

@@ -17,8 +17,8 @@
 package org.apache.solr.handler.dataimport;
 
 public class CachePropertyUtil {
-  public static String getAttributeValueAsString(Context context, String attr) {
-    Object o = context.getSessionAttribute(attr, Context.SCOPE_ENTITY);
+  public static String getAttributeValueAsString(IContext context, String attr) {
+    Object o = context.getSessionAttribute(attr, IContext.SCOPE_ENTITY);
     if (o == null) {
       o = context.getResolvedEntityAttribute(attr);
     }
@@ -31,8 +31,8 @@ public class CachePropertyUtil {
     return o.toString();
   }
   
-  public static Object getAttributeValue(Context context, String attr) {
-    Object o = context.getSessionAttribute(attr, Context.SCOPE_ENTITY);
+  public static Object getAttributeValue(IContext context, String attr) {
+    Object o = context.getSessionAttribute(attr, IContext.SCOPE_ENTITY);
     if (o == null) {
       o = context.getResolvedEntityAttribute(attr);
     }

@@ -90,13 +90,13 @@ public class TikaEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     done = false;
   }
 
   @Override
-  protected void firstInit(Context context) {
+  protected void firstInit(IContext context) {
     super.firstInit(context);
     try {
       String tikaConfigFile = context.getResolvedEntityAttribute("tikaConfig");

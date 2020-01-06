@@ -37,7 +37,7 @@ public class MockStringDataSource extends DataSource<Reader> {
     cache.clear();
   }
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
 
   }
 

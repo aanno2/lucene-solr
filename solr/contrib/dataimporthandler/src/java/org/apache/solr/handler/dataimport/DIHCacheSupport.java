@@ -37,7 +37,7 @@ public class DIHCacheSupport {
   private Iterator<Map<String,Object>> dataSourceRowCache;
   private boolean cacheDoKeyLookup;
   
-  public DIHCacheSupport(Context context, String cacheImplName) {
+  public DIHCacheSupport(IContext context, String cacheImplName) {
     this.cacheImplName = cacheImplName;
     
     Relation r = new Relation(context);
@@ -46,13 +46,13 @@ public class DIHCacheSupport {
     cacheForeignKey = r.foreignKey;
     
     context.setSessionAttribute(DIHCacheSupport.CACHE_PRIMARY_KEY, cacheKey,
-        Context.SCOPE_ENTITY);
+            IContext.SCOPE_ENTITY);
     context.setSessionAttribute(DIHCacheSupport.CACHE_FOREIGN_KEY, cacheForeignKey,
-        Context.SCOPE_ENTITY);
+            IContext.SCOPE_ENTITY);
     context.setSessionAttribute(DIHCacheSupport.CACHE_DELETE_PRIOR_DATA,
-        "true", Context.SCOPE_ENTITY);
+        "true", IContext.SCOPE_ENTITY);
     context.setSessionAttribute(DIHCacheSupport.CACHE_READ_ONLY, "false",
-        Context.SCOPE_ENTITY);
+            IContext.SCOPE_ENTITY);
   }
   
   static class Relation{
@@ -60,7 +60,7 @@ public class DIHCacheSupport {
     protected final String foreignKey;
     protected final String primaryKey;
     
-    public Relation(Context context) {
+    public Relation(IContext context) {
       String where = context.getEntityAttribute("where");
       String cacheKey = context.getEntityAttribute(DIHCacheSupport.CACHE_PRIMARY_KEY);
       String lookupKey = context.getEntityAttribute(DIHCacheSupport.CACHE_FOREIGN_KEY);
@@ -97,7 +97,7 @@ public class DIHCacheSupport {
     
   }
   
-  private DIHCache instantiateCache(Context context) {
+  private DIHCache instantiateCache(IContext context) {
     DIHCache cache = null;
     try {
       @SuppressWarnings("unchecked")
@@ -113,7 +113,7 @@ public class DIHCacheSupport {
     return cache;
   }
   
-  public void initNewParent(Context context) {
+  public void initNewParent(IContext context) {
     dataSourceRowCache = null;
     queryVsCacheIterator = new HashMap<>();
     for (Map.Entry<String,DIHCache> entry : queryVsCache.entrySet()) {
@@ -160,8 +160,8 @@ public class DIHCacheSupport {
     }
   }
   
-  public Map<String,Object> getCacheData(Context context, String query,
-      Iterator<Map<String,Object>> rowIterator) {
+  public Map<String,Object> getCacheData(IContext context, String query,
+                                         Iterator<Map<String,Object>> rowIterator) {
     if (cacheDoKeyLookup) {
       return getIdCacheData(context, query, rowIterator);
     } else {
@@ -179,8 +179,8 @@ public class DIHCacheSupport {
    * @return the cached row corresponding to the given query after all variables
    *         have been resolved
    */
-  protected Map<String,Object> getIdCacheData(Context context, String query,
-      Iterator<Map<String,Object>> rowIterator) {
+  protected Map<String,Object> getIdCacheData(IContext context, String query,
+                                              Iterator<Map<String,Object>> rowIterator) {
     Object key = context.resolve(cacheForeignKey);
     if (key == null) {
       throw new DataImportHandlerException(DataImportHandlerException.WARN,
@@ -210,8 +210,8 @@ public class DIHCacheSupport {
    * 
    * @return the cached row corresponding to the given query
    */
-  protected Map<String,Object> getSimpleCacheData(Context context,
-      String query, Iterator<Map<String,Object>> rowIterator) {
+  protected Map<String,Object> getSimpleCacheData(IContext context,
+                                                  String query, Iterator<Map<String,Object>> rowIterator) {
     if (dataSourceRowCache == null) {      
       DIHCache cache = queryVsCache.get(query);      
       if (cache == null) {        

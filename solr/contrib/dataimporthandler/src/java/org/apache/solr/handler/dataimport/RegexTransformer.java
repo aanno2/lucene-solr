@@ -45,7 +45,7 @@ public class RegexTransformer extends Transformer {
   @Override
   @SuppressWarnings("unchecked")
   public Map<String, Object> transformRow(Map<String, Object> row,
-                                          Context ctx) {
+                                          IContext ctx) {
     List<Map<String, String>> fields = ctx.getAllEntityFields();
     for (Map<String, String> field : fields) {
       String col = field.get(DataImporter.COLUMN);

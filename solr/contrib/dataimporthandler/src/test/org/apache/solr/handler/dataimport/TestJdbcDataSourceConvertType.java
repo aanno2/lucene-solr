@@ -61,8 +61,8 @@ public class TestJdbcDataSourceConvertType extends AbstractDataImportHandlerTest
     f.put("type", "long");
     flds.add(f);
 
-    Context c = getContext(null, null,
-        dataSource, Context.FULL_DUMP, flds, null);
+    IContext c = getContext(null, null,
+        dataSource, IContext.FULL_DUMP, flds, null);
     dataSource.init(c, p);
     Iterator<Map<String, Object>> i = dataSource
         .getData("select 1 as id, CAST(9999 AS DECIMAL) as \"some_i\" from sysibm.sysdummy1");

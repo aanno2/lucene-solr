@@ -46,7 +46,7 @@ public class ScriptTransformer extends Transformer {
  private String functionName;
 
   @Override
-  public Object transformRow(Map<String, Object> row, Context context) {
+  public Object transformRow(Map<String, Object> row, IContext context) {
     try {
       if (engine == null)
         initEngine(context);
@@ -62,7 +62,7 @@ public class ScriptTransformer extends Transformer {
     return null;
   }
 
-  private void initEngine(Context context) {
+  private void initEngine(IContext context) {
     String scriptText = context.getScript();
     String scriptLang = context.getScriptLanguage();
     if (scriptText == null) {

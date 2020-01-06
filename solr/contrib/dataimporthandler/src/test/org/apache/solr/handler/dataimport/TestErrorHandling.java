@@ -100,7 +100,7 @@ public class TestErrorHandling extends AbstractDataImportHandlerTestCase {
     public static String xml = "";
 
     @Override
-    public void init(Context context, Properties initProps) {
+    public void init(IContext context, Properties initProps) {
     }
 
     @Override
@@ -116,7 +116,7 @@ public class TestErrorHandling extends AbstractDataImportHandlerTestCase {
 
   public static class ExceptionTransformer extends Transformer {
     @Override
-    public Object transformRow(Map<String, Object> row, Context context) {
+    public Object transformRow(Map<String, Object> row, IContext context) {
       throw new RuntimeException("Test exception");
     }
   }

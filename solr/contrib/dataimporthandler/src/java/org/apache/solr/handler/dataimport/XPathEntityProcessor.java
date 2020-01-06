@@ -96,7 +96,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     if (reinitXPathReader)
       initXpathReader(context.getVariableResolver());
@@ -238,10 +238,10 @@ public class XPathEntityProcessor extends EntityProcessorBase {
         initQuery(context.replaceTokens(context.getEntityAttribute(URL)));
       r = getNext();
       if (r == null) {
-        Object hasMore = context.getSessionAttribute(HAS_MORE, Context.SCOPE_ENTITY);
+        Object hasMore = context.getSessionAttribute(HAS_MORE, IContext.SCOPE_ENTITY);
         try {
           if ("true".equals(hasMore) || Boolean.TRUE.equals(hasMore)) {
-            String url = (String) context.getSessionAttribute(NEXT_URL, Context.SCOPE_ENTITY);
+            String url = (String) context.getSessionAttribute(NEXT_URL, IContext.SCOPE_ENTITY);
             if (url == null)
               url = context.getEntityAttribute(URL);
             addNamespace();
@@ -253,8 +253,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
             return null;
           }
         } finally {
-          context.setSessionAttribute(HAS_MORE,null,Context.SCOPE_ENTITY);
-          context.setSessionAttribute(NEXT_URL,null,Context.SCOPE_ENTITY);
+          context.setSessionAttribute(HAS_MORE,null, IContext.SCOPE_ENTITY);
+          context.setSessionAttribute(NEXT_URL,null, IContext.SCOPE_ENTITY);
         }
       }
       addCommonFields(r);
@@ -270,7 +270,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     if(allNames.isEmpty()) return;
 
     for (String name : allNames) {
-      Object val = context.getSessionAttribute(name, Context.SCOPE_ENTITY);
+      Object val = context.getSessionAttribute(name, IContext.SCOPE_ENTITY);
       if (val != null) namespace.put(name, val);
     }
     context.getVariableResolver().addNamespace(entityName, namespace);
@@ -280,7 +280,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
     if(commonFields != null){
       for (String commonField : commonFields) {
         if(r.get(commonField) == null) {
-          Object val = context.getSessionAttribute(commonField, Context.SCOPE_ENTITY);
+          Object val = context.getSessionAttribute(commonField, IContext.SCOPE_ENTITY);
           if(val != null) r.put(commonField, val);
         }
 
@@ -401,21 +401,21 @@ public class XPathEntityProcessor extends EntityProcessorBase {
   private Map<String, Object> readUsefulVars(Map<String, Object> r) {
     Object val = r.get(HAS_MORE);
     if (val != null)
-      context.setSessionAttribute(HAS_MORE, val,Context.SCOPE_ENTITY);
+      context.setSessionAttribute(HAS_MORE, val, IContext.SCOPE_ENTITY);
     val = r.get(NEXT_URL);
     if (val != null)
-      context.setSessionAttribute(NEXT_URL, val,Context.SCOPE_ENTITY);
+      context.setSessionAttribute(NEXT_URL, val, IContext.SCOPE_ENTITY);
     if (placeHolderVariables != null) {
       for (String s : placeHolderVariables) {
         val = r.get(s);
-        context.setSessionAttribute(s, val,Context.SCOPE_ENTITY);
+        context.setSessionAttribute(s, val, IContext.SCOPE_ENTITY);
       }
     }
     if (commonFields != null) {
       for (String s : commonFields) {
         Object commonVal = r.get(s);
         if (commonVal != null) {
-          context.setSessionAttribute(s, commonVal,Context.SCOPE_ENTITY);
+          context.setSessionAttribute(s, commonVal, IContext.SCOPE_ENTITY);
         }
       }
     }

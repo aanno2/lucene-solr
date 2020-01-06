@@ -26,8 +26,8 @@ public class TestContextImpl extends AbstractDataImportHandlerTestCase {
   public void testEntityScope() {
     ContextImpl ctx = new ContextImpl(null, new VariableResolver(), null, "something", new HashMap<String,Object>(), null, null);
     String lala = new String("lala");
-    ctx.setSessionAttribute("huhu", lala, Context.SCOPE_ENTITY);
-    Object got = ctx.getSessionAttribute("huhu", Context.SCOPE_ENTITY);
+    ctx.setSessionAttribute("huhu", lala, IContext.SCOPE_ENTITY);
+    Object got = ctx.getSessionAttribute("huhu", IContext.SCOPE_ENTITY);
     
     assertEquals(lala, got);
     
@@ -39,8 +39,8 @@ public class TestContextImpl extends AbstractDataImportHandlerTestCase {
     DocBuilder db = new DocBuilder(di, new SolrWriter(null, null),new SimplePropertiesWriter(), new RequestInfo(null, new HashMap<String,Object>(), null));
     ContextImpl ctx = new ContextImpl(null, new VariableResolver(), null, "something", new HashMap<String,Object>(), null, db);
     String lala = new String("lala");
-    ctx.setSessionAttribute("huhu", lala, Context.SCOPE_SOLR_CORE);
-    Object got = ctx.getSessionAttribute("huhu", Context.SCOPE_SOLR_CORE);
+    ctx.setSessionAttribute("huhu", lala, IContext.SCOPE_SOLR_CORE);
+    Object got = ctx.getSessionAttribute("huhu", IContext.SCOPE_SOLR_CORE);
     assertEquals(lala, got);
     
   }
@@ -49,8 +49,8 @@ public class TestContextImpl extends AbstractDataImportHandlerTestCase {
     ContextImpl ctx = new ContextImpl(null, new VariableResolver(), null, "something", new HashMap<String,Object>(), null, null);
     ctx.setDoc(new DocBuilder.DocWrapper());
     String lala = new String("lala");
-    ctx.setSessionAttribute("huhu", lala, Context.SCOPE_DOC);
-    Object got = ctx.getSessionAttribute("huhu", Context.SCOPE_DOC);
+    ctx.setSessionAttribute("huhu", lala, IContext.SCOPE_DOC);
+    Object got = ctx.getSessionAttribute("huhu", IContext.SCOPE_DOC);
     
     assertEquals(lala, got);
     
@@ -59,8 +59,8 @@ public class TestContextImpl extends AbstractDataImportHandlerTestCase {
   public void testGlobalScope() {
     ContextImpl ctx = new ContextImpl(null, new VariableResolver(), null, "something", new HashMap<String,Object>(), null, null);
     String lala = new String("lala");
-    ctx.setSessionAttribute("huhu", lala, Context.SCOPE_GLOBAL);
-    Object got = ctx.getSessionAttribute("huhu", Context.SCOPE_GLOBAL);
+    ctx.setSessionAttribute("huhu", lala, IContext.SCOPE_GLOBAL);
+    Object got = ctx.getSessionAttribute("huhu", IContext.SCOPE_GLOBAL);
     
     assertEquals(lala, got);
     

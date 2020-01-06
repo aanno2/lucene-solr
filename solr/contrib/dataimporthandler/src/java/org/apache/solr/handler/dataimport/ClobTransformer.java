@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class ClobTransformer extends Transformer {
   @Override
-  public Object transformRow(Map<String, Object> aRow, Context context) {
+  public Object transformRow(Map<String, Object> aRow, IContext context) {
     for (Map<String, String> map : context.getAllEntityFields()) {
       if (!TRUE.equals(map.get(CLOB))) continue;
       String column = map.get(DataImporter.COLUMN);

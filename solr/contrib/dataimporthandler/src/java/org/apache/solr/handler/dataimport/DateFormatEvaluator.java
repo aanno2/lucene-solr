@@ -71,7 +71,7 @@ public class DateFormatEvaluator extends Evaluator {
   }
   
   @Override
-  public String evaluate(String expression, Context context) {
+  public String evaluate(String expression, IContext context) {
     List<Object> l = parseParams(expression, context.getVariableResolver());
     if (l.size() < 2 || l.size() > 4) {
       throw new DataImportHandlerException(SEVERE, "'formatDate()' must have two, three or four parameters ");

@@ -11,7 +11,7 @@ public interface IEntityProcessor extends AutoCloseable, Cloneable {
      *
      * @param context The current context
      */
-    void init(Context context);
+    void init(IContext context);
 
     /**
      * This method helps streaming the data for each row . The implementation
@@ -74,7 +74,7 @@ public interface IEntityProcessor extends AutoCloseable, Cloneable {
     @Override
     void close();
 
-    Context getContext();
+    IContext getContext();
 
     Object clone();
 }

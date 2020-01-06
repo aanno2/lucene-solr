@@ -10,7 +10,7 @@ public interface IDataSource<T> {
      * This is invoked by the <code>DataImporter</code> after creating an
      * instance of this class.
      */
-    void init(Context context, Properties initProps);
+    void init(IContext context, Properties initProps);
 
     /**
      * Get records for the given query.The return type depends on the

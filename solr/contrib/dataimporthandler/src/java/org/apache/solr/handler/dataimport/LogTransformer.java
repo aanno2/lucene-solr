@@ -36,7 +36,7 @@ public class LogTransformer extends Transformer {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
-  public Object transformRow(Map<String, Object> row, Context ctx) {
+  public Object transformRow(Map<String, Object> row, IContext ctx) {
     String expr = ctx.getEntityAttribute(LOG_TEMPLATE);
     String level = ctx.replaceTokens(ctx.getEntityAttribute(LOG_LEVEL));
 

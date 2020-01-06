@@ -215,7 +215,7 @@ public class SortedMapBackedCache implements DIHCache {
   }
 
     @Override
-  public void open(Context context) {
+  public void open(IContext context) {
     checkOpen(false);
     isOpen = true;
     if (theMap == null) {

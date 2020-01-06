@@ -70,7 +70,7 @@ public class MailEntityProcessor extends EntityProcessorBase {
     return clone;
   }
 
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     // set attributes using XXX getXXXFromContext(attribute, defaultValue);
     // applies variable resolver and return default if value is not found or null

@@ -18,7 +18,7 @@ public interface IEvaluator {
      * @param context instance
      * @return the value of the given expression evaluated using the resolver
      */
-    String evaluate(String expression, Context context);
+    String evaluate(String expression, IContext context);
 
     /**
      * Parses a string of expression into separate params. The values are separated by commas. each value will be

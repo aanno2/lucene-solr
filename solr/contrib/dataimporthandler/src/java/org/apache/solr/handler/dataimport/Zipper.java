@@ -41,7 +41,7 @@ class Zipper {
   private PeekingIterator<Map<String,Object>> peeker;
   
   /** @return initialized zipper or null */
-  public static Zipper createOrNull(Context context){
+  public static Zipper createOrNull(IContext context){
     if("zipper".equals(context.getEntityAttribute("join"))){
       DIHCacheSupport.Relation r = new DIHCacheSupport.Relation(context);
       if(r.doKeyLookup){
@@ -102,7 +102,7 @@ class Zipper {
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public void onNewParent(Context context) {
+  public void onNewParent(IContext context) {
     Comparable newParent = (Comparable) context.resolve(relation.foreignKey);
     if(parentId!=null && parentId.compareTo(newParent)>=0){
       throw new IllegalArgumentException("expect strictly increasing primary keys for "+relation+

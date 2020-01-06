@@ -44,7 +44,7 @@ public class BinFileDataSource extends DataSource<InputStream> {
    protected String basePath;
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
      basePath = initProps.getProperty(FileDataSource.BASE_PATH);
   }
 

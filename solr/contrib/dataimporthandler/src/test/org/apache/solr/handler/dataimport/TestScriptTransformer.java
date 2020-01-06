@@ -42,7 +42,7 @@ public class TestScriptTransformer extends AbstractDataImportHandlerTestCase {
     try {
       String script = "function f1(row,context){"
               + "row.put('name','Hello ' + row.get('name'));" + "return row;\n" + "}";
-      Context context = getContext("f1", script);
+      IContext context = getContext("f1", script);
       Map<String, Object> map = new HashMap<>();
       map.put("name", "Scott");
       EntityProcessorWrapper sep = new EntityProcessorWrapper(new SqlEntityProcessor(), null, null);
@@ -56,14 +56,14 @@ public class TestScriptTransformer extends AbstractDataImportHandlerTestCase {
     }
   }
 
-  private Context getContext(String funcName, String script) {
+  private IContext getContext(String funcName, String script) {
     List<Map<String, String>> fields = new ArrayList<>();
     Map<String, String> entity = new HashMap<>();
     entity.put("name", "hello");
     entity.put("transformer", "script:" + funcName);
 
     TestContext context = getContext(null, null, null,
-            Context.FULL_DUMP, fields, entity);
+            IContext.FULL_DUMP, fields, entity);
     context.script = script;
     context.scriptlang = "JavaScript";
     return context;
@@ -75,7 +75,7 @@ public class TestScriptTransformer extends AbstractDataImportHandlerTestCase {
       String script = "function f1(row){"
               + "row.put('name','Hello ' + row.get('name'));" + "return row;\n" + "}";
 
-      Context context = getContext("f1", script);
+      IContext context = getContext("f1", script);
       Map<String, Object> map = new HashMap<>();
       map.put("name", "Scott");
       EntityProcessorWrapper sep = new EntityProcessorWrapper(new SqlEntityProcessor(), null, null);
@@ -113,7 +113,7 @@ public class TestScriptTransformer extends AbstractDataImportHandlerTestCase {
       Document document = builder.parse(new InputSource(new StringReader(xml)));
       DataImporter di = new DataImporter();
       DIHConfiguration dc = di.readFromXml(document);
-      Context c = getContext("checkNextToken", dc.getScript().getText());
+      IContext c = getContext("checkNextToken", dc.getScript().getText());
 
       Map map = new HashMap();
       map.put("nextToken", "hello");

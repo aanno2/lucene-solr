@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class AddAColumnTransformer extends Transformer {
   @Override
-  public Object transformRow(Map<String,Object> aRow, Context context) {
+  public Object transformRow(Map<String,Object> aRow, IContext context) {
     String colName = context.getEntityAttribute("newColumnName");
     colName = colName==null ? "AddAColumn_s" : colName;
     String colValue = context.getEntityAttribute("newColumnValue");

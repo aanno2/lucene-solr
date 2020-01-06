@@ -35,7 +35,7 @@ public interface DIHCache extends Iterable<Map<String,Object>> {
    * includes any parameters needed by the cache impl. This must be called
    * before any read/write operations are permitted.
    */
-  void open(Context context);
+  void open(IContext context);
   
   /**
    * <p>

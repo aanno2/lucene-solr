@@ -105,7 +105,7 @@ public class SolrEntityProcessor extends EntityProcessorBase {
   }
 
   @Override
-  protected void firstInit(Context context) {
+  protected void firstInit(IContext context) {
     super.firstInit(context);
     
     try {

@@ -61,7 +61,7 @@ public class FileDataSource extends DataSource<Reader> {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
     basePath = initProps.getProperty(BASE_PATH);
     if (initProps.get(URLDataSource.ENCODING) != null)
       encoding = initProps.getProperty(URLDataSource.ENCODING);

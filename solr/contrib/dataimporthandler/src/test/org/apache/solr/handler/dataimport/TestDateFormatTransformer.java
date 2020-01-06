@@ -49,8 +49,8 @@ public class TestDateFormatTransformer extends AbstractDataImportHandlerTestCase
     resolver.addNamespace("e", row);
     resolver.addNamespace("xyz", createMap("myDateFormat", "MM/dd/yyyy"));
 
-    Context context = getContext(null, resolver,
-            null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, resolver,
+            null, IContext.FULL_DUMP, fields, null);
     new DateFormatTransformer().transformRow(row, context);
     assertEquals(now, row.get("dateAdded"));
   }
@@ -77,8 +77,8 @@ public class TestDateFormatTransformer extends AbstractDataImportHandlerTestCase
     IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("e", row);
 
-    Context context = getContext(null, resolver,
-            null, Context.FULL_DUMP, fields, null);
+    IContext context = getContext(null, resolver,
+            null, IContext.FULL_DUMP, fields, null);
     new DateFormatTransformer().transformRow(row, context);
     List<Object> output = new ArrayList<>();
     output.add(now1);

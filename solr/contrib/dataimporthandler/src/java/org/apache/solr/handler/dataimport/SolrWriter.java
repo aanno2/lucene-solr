@@ -169,7 +169,7 @@ public class SolrWriter extends DIHWriterBase implements DIHWriter {
     }
   }
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     /* NO-OP */
   }
 }

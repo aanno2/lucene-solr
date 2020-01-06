@@ -44,14 +44,14 @@ public class BinURLDataSource extends DataSource<InputStream>{
 
   private int readTimeout = READ_TIMEOUT;
 
-  private Context context;
+  private IContext context;
 
   private Properties initProps;
 
   public BinURLDataSource() { }
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
       this.context = context;
     this.initProps = initProps;
 

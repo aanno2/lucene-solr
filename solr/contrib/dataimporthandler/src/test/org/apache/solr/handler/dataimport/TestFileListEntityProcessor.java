@@ -53,8 +53,8 @@ public class TestFileListEntityProcessor extends AbstractDataImportHandlerTestCa
     Map attrs = createMap(
             FileListEntityProcessor.FILE_NAME, "xml$",
             FileListEntityProcessor.BASE_DIR, tmpdir.getAbsolutePath());
-    Context c = getContext(null,
-            new VariableResolver(), null, Context.FULL_DUMP, Collections.EMPTY_LIST, attrs);
+    IContext c = getContext(null,
+            new VariableResolver(), null, IContext.FULL_DUMP, Collections.EMPTY_LIST, attrs);
     FileListEntityProcessor fileListEntityProcessor = new FileListEntityProcessor();
     fileListEntityProcessor.init(c);
     List<String> fList = new ArrayList<>();
@@ -121,8 +121,8 @@ public class TestFileListEntityProcessor extends AbstractDataImportHandlerTestCa
 
   @SuppressWarnings("unchecked")
   static List<String> getFiles(IVariableResolver resolver, Map attrs) {
-    Context c = getContext(null,
-            resolver, null, Context.FULL_DUMP, Collections.EMPTY_LIST, attrs);
+    IContext c = getContext(null,
+            resolver, null, IContext.FULL_DUMP, Collections.EMPTY_LIST, attrs);
     FileListEntityProcessor fileListEntityProcessor = new FileListEntityProcessor();
     fileListEntityProcessor.init(c);
     List<String> fList = new ArrayList<>();

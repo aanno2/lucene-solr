@@ -100,7 +100,7 @@ public class ContextImpl extends Context {
       epw.setDatasource(dataImporter.getDataSourceInstance(epw.getEntity(), epw.getEntity().getDataSourceName(), this));
     }
     if (epw!=null && epw.getDatasource() != null && docBuilder != null && docBuilder.verboseDebug &&
-             Context.FULL_DUMP.equals(currentProcess())) {
+            IContext.FULL_DUMP.equals(currentProcess())) {
       //debug is not yet implemented properly for deltas
       epw.setDatasource(docBuilder.getDebugLogger().wrapDs(epw.getDatasource()));
     }
@@ -137,16 +137,16 @@ public class ContextImpl extends Context {
     if(name == null) {
       return;
     }
-    if (Context.SCOPE_ENTITY.equals(scope)) {
+    if (IContext.SCOPE_ENTITY.equals(scope)) {
       if (entitySession == null) {
         entitySession = new HashMap<>();
       }
       entitySession.put(name, val);
-    } else if (Context.SCOPE_GLOBAL.equals(scope)) {
+    } else if (IContext.SCOPE_GLOBAL.equals(scope)) {
       if (globalSession != null) {
         globalSession.put(name, val);
       }
-    } else if (Context.SCOPE_DOC.equals(scope)) {
+    } else if (IContext.SCOPE_DOC.equals(scope)) {
       DocBuilder.DocWrapper doc = getDocument();
       if (doc != null) {
         doc.setSessionAttribute(name, val);
@@ -160,15 +160,15 @@ public class ContextImpl extends Context {
 
   @Override
   public Object getSessionAttribute(String name, String scope) {
-    if (Context.SCOPE_ENTITY.equals(scope)) {
+    if (IContext.SCOPE_ENTITY.equals(scope)) {
       if (entitySession == null)
         return null;
       return entitySession.get(name);
-    } else if (Context.SCOPE_GLOBAL.equals(scope)) {
+    } else if (IContext.SCOPE_GLOBAL.equals(scope)) {
       if (globalSession != null) {
         return globalSession.get(name);
       }
-    } else if (Context.SCOPE_DOC.equals(scope)) {
+    } else if (IContext.SCOPE_DOC.equals(scope)) {
       DocBuilder.DocWrapper doc = getDocument();      
       return doc == null ? null: doc.getSessionAttribute(name);
     } else if (SCOPE_SOLR_CORE.equals(scope)){
@@ -178,7 +178,7 @@ public class ContextImpl extends Context {
   }
 
   @Override
-  public Context getParentContext() {
+  public IContext getParentContext() {
     return parent;
   }
 

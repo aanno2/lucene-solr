@@ -12,5 +12,5 @@ public interface ITransformer {
      *         only one row or if there are multiple rows to be returned it must
      *         be a {@link java.util.List}&lt;{@link Map}&lt;{@link String}, {@link Object}&gt;&gt;
      */
-    Object transformRow(Map<String, Object> row, Context context);
+    Object transformRow(Map<String, Object> row, IContext context);
 }

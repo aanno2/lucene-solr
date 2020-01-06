@@ -55,7 +55,7 @@ public class FieldReaderDataSource extends DataSource<Reader> {
   private EntityProcessorWrapper entityProcessor;
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
     dataField = context.getEntityAttribute("dataField");
     encoding = context.getEntityAttribute("encoding");
     entityProcessor = (EntityProcessorWrapper) context.getEntityProcessor();

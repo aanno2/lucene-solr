@@ -68,7 +68,7 @@ public class LineEntityProcessor extends EntityProcessorBase {
    * Parses each of the entity attributes.
    */
   @Override
-  public void init(Context context) {
+  public void init(IContext context) {
     super.init(context);
     String s;
 

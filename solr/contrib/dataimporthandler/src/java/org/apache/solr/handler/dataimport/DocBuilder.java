@@ -170,9 +170,9 @@ public class DocBuilder {
   private void notifyListener(EventListener listener, Exception lastException) {
     String currentProcess;
     if (dataImporter.getStatus() == DataImporter.Status.RUNNING_DELTA_DUMP) {
-      currentProcess = Context.DELTA_DUMP;
+      currentProcess = IContext.DELTA_DUMP;
     } else {
-      currentProcess = Context.FULL_DUMP;
+      currentProcess = IContext.FULL_DUMP;
     }
     ContextImpl ctx = new ContextImpl(null, getVariableResolver(), null, currentProcess, session, null, this);
     ctx.setLastException(lastException);
@@ -433,7 +433,7 @@ public class DocBuilder {
                              ContextImpl parentCtx, Queue<EntityProcessorWrapper> entitiesToDestroy) {
 
     ContextImpl ctx = new ContextImpl(epw, vr, null,
-            pk == null ? Context.FULL_DUMP : Context.DELTA_DUMP,
+            pk == null ? IContext.FULL_DUMP : IContext.DELTA_DUMP,
             session, parentCtx, this);
     epw.init(ctx);
     if (!epw.isInitialized()) {
@@ -822,7 +822,7 @@ public class DocBuilder {
     if (stop.get())
       return new HashSet();
 
-    ContextImpl context1 = new ContextImpl(epw, resolver, null, Context.FIND_DELTA, session, null, this);
+    ContextImpl context1 = new ContextImpl(epw, resolver, null, IContext.FIND_DELTA, session, null, this);
     epw.init(context1);
 
     Set<Map<String, Object>> myModifiedPks = new HashSet<>();

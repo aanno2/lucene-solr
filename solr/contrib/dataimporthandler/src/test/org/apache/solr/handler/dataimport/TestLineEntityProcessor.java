@@ -48,11 +48,11 @@ public class TestLineEntityProcessor extends AbstractDataImportHandlerTestCase {
             LineEntityProcessor.SKIP_LINE_REGEX, null
     );
 
-    Context c = getContext(
+    IContext c = getContext(
             null,                          //parentEntity
             new VariableResolver(),  //resolver
             getDataSource(filecontents),   //parentDataSource
-            Context.FULL_DUMP,                             //currProcess
+            IContext.FULL_DUMP,                             //currProcess
             Collections.EMPTY_LIST,        //entityFields
             attrs                          //entityAttrs
     );
@@ -88,11 +88,11 @@ public class TestLineEntityProcessor extends AbstractDataImportHandlerTestCase {
             LineEntityProcessor.SKIP_LINE_REGEX, null
     );
 
-    Context c = getContext(
+    IContext c = getContext(
             null,                          //parentEntity
             new VariableResolver(),  //resolver
             getDataSource(filecontents),   //parentDataSource
-            Context.FULL_DUMP,                             //currProcess
+            IContext.FULL_DUMP,                             //currProcess
             Collections.EMPTY_LIST,        //entityFields
             attrs                          //entityAttrs
     );
@@ -126,11 +126,11 @@ public class TestLineEntityProcessor extends AbstractDataImportHandlerTestCase {
             LineEntityProcessor.SKIP_LINE_REGEX, "\\.xsd"
     );
 
-    Context c = getContext(
+    IContext c = getContext(
             null,                          //parentEntity
             new VariableResolver(),  //resolver
             getDataSource(filecontents),   //parentDataSource
-            Context.FULL_DUMP,                             //currProcess
+            IContext.FULL_DUMP,                             //currProcess
             Collections.EMPTY_LIST,        //entityFields
             attrs                          //entityAttrs
     );
@@ -162,11 +162,11 @@ public class TestLineEntityProcessor extends AbstractDataImportHandlerTestCase {
             LineEntityProcessor.SKIP_LINE_REGEX, "\\.xsd"
     );
 
-    Context c = getContext(
+    IContext c = getContext(
             null,                          //parentEntity
             new VariableResolver(),  //resolver
             getDataSource(filecontents),   //parentDataSource
-            Context.FULL_DUMP,                             //currProcess
+            IContext.FULL_DUMP,                             //currProcess
             Collections.EMPTY_LIST,        //entityFields
             attrs                          //entityAttrs
     );
@@ -207,7 +207,7 @@ public class TestLineEntityProcessor extends AbstractDataImportHandlerTestCase {
   private DataSource<Reader> getDataSource(final String xml) {
     return new DataSource<Reader>() {
       @Override
-      public void init(Context context, Properties initProps) {
+      public void init(IContext context, Properties initProps) {
       }
 
       @Override

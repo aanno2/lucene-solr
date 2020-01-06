@@ -51,7 +51,7 @@ public class FieldStreamDataSource extends DataSource<InputStream> {
   private EntityProcessorWrapper wrapper;
 
   @Override
-  public void init(Context context, Properties initProps) {
+  public void init(IContext context, Properties initProps) {
     dataField = context.getEntityAttribute("dataField");
     wrapper = (EntityProcessorWrapper) context.getEntityProcessor();
     /*no op*/
