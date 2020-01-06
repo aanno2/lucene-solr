@@ -80,7 +80,9 @@ public class VariableResolver implements IVariableResolver {
 
   VariableResolver(VariableResolver toCopy) {
     this(toCopy.rootNamespace);
-    this.evaluators = new HashMap<>(toCopy.evaluators);
+    if (toCopy.evaluators != null) {
+      this.evaluators = new HashMap<>(toCopy.evaluators);
+    }
     this.cache = toCopy.cache;
     this.fun = toCopy.fun;
   }
