@@ -106,7 +106,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
 
   }
 
-  private void initXpathReader(VariableResolver resolver) {
+  private void initXpathReader(IVariableResolver resolver) {
     reinitXPathReader = false;
     useSolrAddXml = Boolean.parseBoolean(context
             .getEntityAttribute(USE_SOLR_ADD_SCHEMA));
@@ -273,7 +273,7 @@ public class XPathEntityProcessor extends EntityProcessorBase {
       Object val = context.getSessionAttribute(name, Context.SCOPE_ENTITY);
       if (val != null) namespace.put(name, val);
     }
-    ((VariableResolver)context.getVariableResolver()).addNamespace(entityName, namespace);
+    context.getVariableResolver().addNamespace(entityName, namespace);
   }
 
   private void addCommonFields(Map<String, Object> r) {

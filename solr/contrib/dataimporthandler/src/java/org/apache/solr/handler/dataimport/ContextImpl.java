@@ -37,7 +37,7 @@ public class ContextImpl extends Context {
 
   private ContextImpl parent;
 
-  private VariableResolver resolver;
+  private IVariableResolver resolver;
 
   private DataSource ds;
 
@@ -56,7 +56,7 @@ public class ContextImpl extends Context {
   DocBuilder docBuilder;
 
 
-  public ContextImpl(EntityProcessorWrapper epw, VariableResolver resolver,
+  public ContextImpl(EntityProcessorWrapper epw, IVariableResolver resolver,
                      DataSource ds, String currProcess,
                      Map<String, Object> global, ContextImpl parentContext, DocBuilder docBuilder) {
     this.epw = epw;
@@ -88,7 +88,7 @@ public class ContextImpl extends Context {
   }
 
   @Override
-  public VariableResolver getVariableResolver() {
+  public IVariableResolver getVariableResolver() {
     return resolver;
   }
 

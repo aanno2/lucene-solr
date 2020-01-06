@@ -42,7 +42,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void testSimpleNamespace() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
     vri.addNamespace("hello", ns);
@@ -58,7 +58,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     
     Properties p = new Properties();
     p.put("hello", "world");
-    VariableResolver vri = new VariableResolver(p);
+    IVariableResolver vri = new VariableResolver(p);
     Object val = vri.resolve(TestVariableResolver.class.getName());
     // System.out.println("val = " + val);
     assertEquals("hello", val);
@@ -67,7 +67,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void testNestedNamespace() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
     vri.addNamespace("hello", ns);
@@ -79,7 +79,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void test3LevelNestedNamespace() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
     vri.addNamespace("hello", ns);
@@ -91,7 +91,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void dateNamespaceWithValue() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     vri.setEvaluators(new DataImporter().getEvaluators(Collections
         .<Map<String,String>> emptyList()));
     Map<String,Object> ns = new HashMap<>();
@@ -105,7 +105,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void dateNamespaceWithExpr() throws Exception {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     vri.setEvaluators(new DataImporter().getEvaluators(Collections
         .<Map<String,String>> emptyList()));
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
@@ -121,7 +121,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void testDefaultNamespace() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
     vri.addNamespace(null, ns);
@@ -130,7 +130,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void testDefaultNamespace1() {
-    VariableResolver vri = new VariableResolver();
+    IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
     vri.addNamespace(null, ns);
@@ -139,7 +139,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   
   @Test
   public void testFunctionNamespace1() throws Exception {
-    VariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     final List<Map<String,String>> l = new ArrayList<>();
     Map<String,String> m = new HashMap<>();
     m.put("name", "test");

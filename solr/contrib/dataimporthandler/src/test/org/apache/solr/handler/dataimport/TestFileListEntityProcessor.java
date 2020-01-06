@@ -113,14 +113,14 @@ public class TestFileListEntityProcessor extends AbstractDataImportHandlerTestCa
             FileListEntityProcessor.FILE_NAME, ".*",
             FileListEntityProcessor.BASE_DIR, tmpdir.getAbsolutePath(),
             FileListEntityProcessor.SMALLER_THAN, "${a.x}");
-    VariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("a", createMap("x", "4"));
     fList = getFiles(resolver, attrs);
     assertEquals(l, new HashSet<>(fList));
   }
 
   @SuppressWarnings("unchecked")
-  static List<String> getFiles(VariableResolver resolver, Map attrs) {
+  static List<String> getFiles(IVariableResolver resolver, Map attrs) {
     Context c = getContext(null,
             resolver, null, Context.FULL_DUMP, Collections.EMPTY_LIST, attrs);
     FileListEntityProcessor fileListEntityProcessor = new FileListEntityProcessor();
@@ -161,7 +161,7 @@ public class TestFileListEntityProcessor extends AbstractDataImportHandlerTestCa
             FileListEntityProcessor.FILE_NAME, ".xml$",
             FileListEntityProcessor.BASE_DIR, tmpdir.getAbsolutePath(),
             FileListEntityProcessor.NEWER_THAN, "${a.x}");
-    VariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     String lastMod = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(System.currentTimeMillis() - 50000));
     resolver.addNamespace("a", createMap("x", lastMod));
     createFile(tmpdir, "t.xml", "t.xml".getBytes(StandardCharsets.UTF_8), false);

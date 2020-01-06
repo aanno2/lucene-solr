@@ -66,7 +66,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     inputs.add("245" + GROUPING_SEP + "678");
     Map<String, Object> row = createMap("inputs", inputs);
 
-    VariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("e", row);
 
     Context context = getContext(null, resolver, null, Context.FULL_DUMP, fields, null);

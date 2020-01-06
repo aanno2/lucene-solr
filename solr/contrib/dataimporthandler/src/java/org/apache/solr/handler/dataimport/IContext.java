@@ -59,7 +59,7 @@ public interface IContext {
      * @see VariableResolver
      */
 
-    VariableResolver getVariableResolver();
+    IVariableResolver getVariableResolver();
 
     /**
      * Gets the datasource instance defined for this entity. Do not close() this instance.

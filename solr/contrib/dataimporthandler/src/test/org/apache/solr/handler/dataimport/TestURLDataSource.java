@@ -27,8 +27,8 @@ import org.junit.Test;
 public class TestURLDataSource extends AbstractDataImportHandlerTestCase {
   private List<Map<String, String>> fields = new ArrayList<>();
   private URLDataSource dataSource = new URLDataSource();
-  private VariableResolver variableResolver = new VariableResolver();
-  private Context context = AbstractDataImportHandlerTestCase.getContext(null, variableResolver,
+  private IVariableResolver IVariableResolver = new VariableResolver();
+  private Context context = AbstractDataImportHandlerTestCase.getContext(null, IVariableResolver,
       dataSource, Context.FULL_DUMP, fields, null);
   private Properties initProps = new Properties();
   
@@ -36,7 +36,7 @@ public class TestURLDataSource extends AbstractDataImportHandlerTestCase {
   public void substitutionsOnBaseUrl() throws Exception {
     String url = "http://example.com/";
     
-    variableResolver.addNamespace("dataimporter.request", Collections.<String,Object>singletonMap("baseurl", url));
+    IVariableResolver.addNamespace("dataimporter.request", Collections.<String,Object>singletonMap("baseurl", url));
     
     initProps.setProperty(URLDataSource.BASE_URL, "${dataimporter.request.baseurl}");
     dataSource.init(context, initProps);

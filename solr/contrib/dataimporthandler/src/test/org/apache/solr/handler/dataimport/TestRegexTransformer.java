@@ -148,7 +148,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     String s = "Fuel Economy Range: 26 mpg Hwy, 19 mpg City";
     row.put("rowdata", s);
 
-    VariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     resolver.addNamespace("e", row);
     Map<String, String> eAttrs = createMap("name", "e");
     Context context = getContext(null, resolver, null, Context.FULL_DUMP, fields, eAttrs);

@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -112,9 +111,9 @@ public class DocBuilder {
     return debugLogger;
   }
 
-  private VariableResolver getVariableResolver() {
+  private IVariableResolver getVariableResolver() {
     try {
-      VariableResolver resolver = null;
+      IVariableResolver resolver = null;
       String epoch = propWriter.convertDateToString(EPOCH);
       if(dataImporter != null && dataImporter.getCore() != null
           && dataImporter.getCore().getResourceLoader().getCoreProperties() != null){
@@ -337,7 +336,7 @@ public class DocBuilder {
   @SuppressWarnings("unchecked")
   private void doDelta() {
     addStatusMessage("Delta Dump started");
-    VariableResolver resolver = getVariableResolver();
+    IVariableResolver resolver = getVariableResolver();
 
     if (config.getDeleteQuery() != null) {
       writer.deleteByQuery(config.getDeleteQuery());
@@ -360,7 +359,7 @@ public class DocBuilder {
     writer.setDeltaKeys(allPks);
 
     statusMessages.put("Total Changed Documents", allPks.size());
-    VariableResolver vri = getVariableResolver();
+    IVariableResolver vri = getVariableResolver();
     Iterator<Map<String, Object>> pkIter = allPks.iterator();
     while (pkIter.hasNext()) {
       Map<String, Object> map = pkIter.next();
@@ -411,9 +410,9 @@ public class DocBuilder {
     
   }
   
-  private void buildDocument(VariableResolver vr, DocWrapper doc,
-      Map<String,Object> pk, EntityProcessorWrapper epw, boolean isRoot,
-      ContextImpl parentCtx) {
+  private void buildDocument(IVariableResolver vr, DocWrapper doc,
+                             Map<String,Object> pk, EntityProcessorWrapper epw, boolean isRoot,
+                             ContextImpl parentCtx) {
     Queue<EntityProcessorWrapper> entitiesToDestroy = new ConcurrentLinkedQueue<>();
     try {
       buildDocument(vr, doc, pk, epw, isRoot, parentCtx, entitiesToDestroy);
@@ -429,7 +428,7 @@ public class DocBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  private void buildDocument(VariableResolver vr, final DocWrapper doc,
+  private void buildDocument(IVariableResolver vr, final DocWrapper doc,
                              Map<String, Object> pk, EntityProcessorWrapper epw, boolean isRoot,
                              ContextImpl parentCtx, Queue<EntityProcessorWrapper> entitiesToDestroy) {
 
@@ -605,7 +604,7 @@ public class DocBuilder {
     }
   }
 
-  private DocWrapper addParentFields(DocWrapper doc, Entity entity, VariableResolver vr) {
+  private DocWrapper addParentFields(DocWrapper doc, Entity entity, IVariableResolver vr) {
     if (doc == null && entity.isDocRoot()) {
       doc = new DocWrapper();
       // ctx.setDoc(doc);
@@ -688,7 +687,7 @@ public class DocBuilder {
 
   @SuppressWarnings("unchecked")
   private void addFields(Entity entity, DocWrapper doc,
-                         Map<String, Object> arow, VariableResolver vr) {
+                         Map<String, Object> arow, IVariableResolver vr) {
     for (Map.Entry<String, Object> entry : arow.entrySet()) {
       String key = entry.getKey();
       Object value = entry.getValue();
@@ -817,7 +816,7 @@ public class DocBuilder {
    * @return an iterator to the list of keys for which Solr documents should be updated.
    */
   @SuppressWarnings("unchecked")
-  public Set<Map<String, Object>> collectDelta(EntityProcessorWrapper epw, VariableResolver resolver,
+  public Set<Map<String, Object>> collectDelta(EntityProcessorWrapper epw, IVariableResolver resolver,
                                                Set<Map<String, Object>> deletedRows) {
     //someone called abort
     if (stop.get())
@@ -923,7 +922,7 @@ public class DocBuilder {
         myModifiedPks : new HashSet<>(parentKeyList);
   }
 
-  private void getModifiedParentRows(VariableResolver resolver,
+  private void getModifiedParentRows(IVariableResolver resolver,
                                      String entity, EntityProcessor entityProcessor,
                                      Set<Map<String, Object>> parentKeyList) {
     try {

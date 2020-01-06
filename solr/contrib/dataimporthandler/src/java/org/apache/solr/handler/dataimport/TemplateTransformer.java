@@ -54,7 +54,7 @@ public class TemplateTransformer extends Transformer {
   @Override
   @SuppressWarnings("unchecked")
   public Object transformRow(Map<String, Object> row, Context context) {
-    VariableResolver resolver = context.getVariableResolver();
+    IVariableResolver resolver = context.getVariableResolver();
     // Add current row to the copy of resolver map
 
     for (Map<String, String> map : context.getAllEntityFields()) {

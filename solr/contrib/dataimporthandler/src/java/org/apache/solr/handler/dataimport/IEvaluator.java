@@ -34,15 +34,15 @@ public interface IEvaluator {
      *
      * @return a List of objects which can either be a string, number or a variable wrapper
      */
-    List<Object> parseParams(String expression, VariableResolver vr);
+    List<Object> parseParams(String expression, IVariableResolver vr);
 
-    VariableWrapper getVariableWrapper(String s, VariableResolver vr);
+    VariableWrapper getVariableWrapper(String s, IVariableResolver vr);
 
     public static class VariableWrapper {
       public final String varName;
-      public final VariableResolver vr;
+      public final IVariableResolver vr;
 
-      public VariableWrapper(String s, VariableResolver vr) {
+      public VariableWrapper(String s, IVariableResolver vr) {
         this.varName = s;
         this.vr = vr;
       }

@@ -33,7 +33,7 @@ import java.util.*;
 public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
   private static final String ENCODING = StandardCharsets.UTF_8.name();
 
-  VariableResolver resolver;
+  IVariableResolver resolver;
 
   Map<String, String> sqlTests;
 
@@ -81,7 +81,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
   public void parseParams() {
     Map<String,Object> m = new HashMap<>();
     m.put("b","B");
-    VariableResolver vr = new VariableResolver();
+    IVariableResolver vr = new VariableResolver();
     vr.addNamespace("a",m);
     List<Object> l = (new Evaluator() {      
       @Override
@@ -97,7 +97,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
 
   @Test
   public void testEscapeSolrQueryFunction() {
-    final VariableResolver resolver = new VariableResolver();    
+    final IVariableResolver resolver = new VariableResolver();
     Map<String,Object> m= new HashMap<>();
     m.put("query","c:t");
     resolver.setEvaluators(new DataImporter().getEvaluators(Collections.<Map<String,String>>emptyList()));

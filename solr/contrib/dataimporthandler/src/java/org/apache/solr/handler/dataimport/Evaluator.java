@@ -21,7 +21,6 @@ import static org.apache.solr.handler.dataimport.DataImportHandlerException.wrap
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -56,7 +55,7 @@ public abstract class Evaluator implements IEvaluator {
    * @return a List of objects which can either be a string, number or a variable wrapper
    */
   @Override
-  public List<Object> parseParams(String expression, VariableResolver vr) {
+  public List<Object> parseParams(String expression, IVariableResolver vr) {
     List<Object> result = new ArrayList<>();
     expression = expression.trim();
     String[] ss = expression.split(",");
@@ -96,7 +95,7 @@ public abstract class Evaluator implements IEvaluator {
   }
 
   @Override
-  public VariableWrapper getVariableWrapper(String s, VariableResolver vr) {
+  public VariableWrapper getVariableWrapper(String s, IVariableResolver vr) {
     return new VariableWrapper(s,vr);
   }
 
