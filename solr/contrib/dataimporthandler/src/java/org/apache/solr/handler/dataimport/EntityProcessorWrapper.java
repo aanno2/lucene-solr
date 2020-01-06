@@ -101,7 +101,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
   @Override
   public void init(IContext context) {
     rowcache = null;
-    IVariableResolver resolver = getContext().getVariableResolver();
+    IVariableResolver resolver = context.getVariableResolver();
     if (entityName == null) {
       onError = resolver.replaceTokens(context.getEntityAttribute(ON_ERROR));
       if (onError == null) onError = ABORT;
