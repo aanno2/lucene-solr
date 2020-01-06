@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FieldStreamDataSource extends DataSource<InputStream> {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  protected VariableResolver vr;
+  // protected VariableResolver vr;
   protected String dataField;
   private EntityProcessorWrapper wrapper;
 

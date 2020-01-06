@@ -26,18 +26,9 @@ import java.util.Map;
  * 
  * @lucene.experimental
  */
-public abstract class DIHProperties {
-  
-  public abstract void init(DataImporter dataImporter, Map<String, String> initParams);
-  
-  public abstract boolean isWritable();
-  
-  public abstract void persist(Map<String, Object> props);
-  
-  public abstract Map<String, Object> readIndexerProperties();
-  
-  public abstract String convertDateToString(Date d);
-  
+public abstract class DIHProperties implements IDIHProperties {
+
+  @Override
   public Date getCurrentTimestamp() {
     return new Date();
   }

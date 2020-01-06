@@ -39,8 +39,10 @@ import java.util.Properties;
  * @since solr 3.1
  */
 
-public class BinFileDataSource extends DataSource<InputStream>{
+public class BinFileDataSource extends DataSource<InputStream> {
+
    protected String basePath;
+
   @Override
   public void init(Context context, Properties initProps) {
      basePath = initProps.getProperty(FileDataSource.BASE_PATH);

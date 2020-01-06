@@ -32,6 +32,7 @@ import java.util.Map;
  * @since solr 1.3
  */
 public class ContextImpl extends Context {
+
   protected EntityProcessorWrapper epw;
 
   private ContextImpl parent;
@@ -53,7 +54,6 @@ public class ContextImpl extends Context {
   DocBuilder.DocWrapper doc;
 
   DocBuilder docBuilder;
-
 
 
   public ContextImpl(EntityProcessorWrapper epw, VariableResolver resolver,
@@ -242,9 +242,11 @@ public class ContextImpl extends Context {
     } 
   }
 
-  DocBuilder getDocBuilder(){
+  @Override
+  public DocBuilder getDocBuilder(){
     return docBuilder;
   }
+
   @Override
   public Object resolve(String var) {
     return resolver.resolve(var);

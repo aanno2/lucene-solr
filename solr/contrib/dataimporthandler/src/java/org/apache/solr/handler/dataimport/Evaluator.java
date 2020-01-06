@@ -39,17 +39,7 @@ import java.util.regex.Pattern;
  *
  * @since solr 1.3
  */
-public abstract class Evaluator {
-
-  /**
-   * Return a String after processing an expression and a {@link VariableResolver}
-   *
-   * @see VariableResolver
-   * @param expression string to be evaluated
-   * @param context instance
-   * @return the value of the given expression evaluated using the resolver
-   */
-  public abstract String evaluate(String expression, Context context);
+public abstract class Evaluator implements IEvaluator {
 
   /**
    * Parses a string of expression into separate params. The values are separated by commas. each value will be
@@ -65,7 +55,8 @@ public abstract class Evaluator {
    *
    * @return a List of objects which can either be a string, number or a variable wrapper
    */
-  protected List<Object> parseParams(String expression, VariableResolver vr) {
+  @Override
+  public List<Object> parseParams(String expression, VariableResolver vr) {
     List<Object> result = new ArrayList<>();
     expression = expression.trim();
     String[] ss = expression.split(",");
@@ -104,37 +95,9 @@ public abstract class Evaluator {
     return result;
   }
 
-  protected VariableWrapper getVariableWrapper(String s, VariableResolver vr) {
+  @Override
+  public VariableWrapper getVariableWrapper(String s, VariableResolver vr) {
     return new VariableWrapper(s,vr);
   }
 
-  static protected class VariableWrapper {
-    public final String varName;
-    public final VariableResolver vr;
-
-    public VariableWrapper(String s, VariableResolver vr) {
-      this.varName = s;
-      this.vr = vr;
-    }
-
-    public Object resolve() {
-      return vr.resolve(varName);
-    }
-
-    @Override
-    public String toString() {
-      Object o = vr.resolve(varName);
-      return o == null ? null : o.toString();
-    }
-  }
-
-  static Pattern IN_SINGLE_QUOTES = Pattern.compile("^'(.*?)'$");
-  
-  public static final String DATE_FORMAT_EVALUATOR = "formatDate";
-
-  public static final String URL_ENCODE_EVALUATOR = "encodeUrl";
-
-  public static final String ESCAPE_SOLR_QUERY_CHARS = "escapeQueryChars";
-
-  public static final String SQL_ESCAPE_EVALUATOR = "escapeSql";
 }

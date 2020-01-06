@@ -34,7 +34,8 @@ import java.util.Properties;
  * @since solr 1.4
  */
 public class ContentStreamDataSource extends DataSource<Reader> {
-  private ContextImpl context;
+
+  private Context context;
   private ContentStream contentStream;
   private Reader reader;
 

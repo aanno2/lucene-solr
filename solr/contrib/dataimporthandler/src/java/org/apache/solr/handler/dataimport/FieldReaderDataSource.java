@@ -49,7 +49,7 @@ import java.util.Properties;
  */
 public class FieldReaderDataSource extends DataSource<Reader> {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  protected VariableResolver vr;
+  // protected VariableResolver vr;
   protected String dataField;
   private String encoding;
   private EntityProcessorWrapper entityProcessor;

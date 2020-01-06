@@ -36,6 +36,7 @@ import java.util.Properties;
  * @since solr 3.1
  */
 public class BinURLDataSource extends DataSource<InputStream>{
+
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private String baseUrl;

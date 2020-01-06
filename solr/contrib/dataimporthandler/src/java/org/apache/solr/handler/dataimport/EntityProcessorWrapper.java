@@ -47,8 +47,6 @@ public class EntityProcessorWrapper implements EntityProcessor {
   private DocBuilder docBuilder;
   private boolean initialized;
   private String onError;
-  private Context context;
-  private VariableResolver resolver;
   private String entityName;
 
   protected List<Transformer> transformers;
@@ -103,19 +101,18 @@ public class EntityProcessorWrapper implements EntityProcessor {
   @Override
   public void init(Context context) {
     rowcache = null;
-    this.context = context;
-    resolver = (VariableResolver) context.getVariableResolver();
+    VariableResolver resolver = (VariableResolver) getContext().getVariableResolver();
     if (entityName == null) {
       onError = resolver.replaceTokens(context.getEntityAttribute(ON_ERROR));
       if (onError == null) onError = ABORT;
       entityName = context.getEntityAttribute(ConfigNameConstants.NAME);
     }
     delegate.init(context);
-
   }
 
   @SuppressWarnings("unchecked")
   void loadTransformers() {
+    Context context = getContext();
     String transClasses = context.getEntityAttribute(TRANSFORMER);
 
     if (transClasses == null) {
@@ -231,6 +228,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
     Map<String, Object> transformedRow = row;
     List<Map<String, Object>> rows = null;
     boolean stopTransform = checkStopTransform(row);
+    Context context = getContext();
     VariableResolver resolver = (VariableResolver) context.getVariableResolver();
     for (Transformer t : transformers) {
       if (stopTransform) break;
@@ -349,11 +347,11 @@ public class EntityProcessorWrapper implements EntityProcessor {
   }
 
   public VariableResolver getVariableResolver() {
-    return (VariableResolver) context.getVariableResolver();
+    return (VariableResolver) getContext().getVariableResolver();
   }
 
   public Context getContext() {
-    return context;
+    return delegate.getContext();
   }
 
   @Override

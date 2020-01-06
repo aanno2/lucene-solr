@@ -33,14 +33,14 @@ import java.util.Properties;
  */
 
 public class BinContentStreamDataSource extends DataSource<InputStream> {
-  private ContextImpl context;
+
+  private Context context;
   private ContentStream contentStream;
   private InputStream in;
 
-
   @Override
   public void init(Context context, Properties initProps) {
-    this.context = (ContextImpl) context;
+    this.context = context;
   }
 
   @Override

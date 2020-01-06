@@ -74,5 +74,7 @@ public interface IEntityProcessor extends AutoCloseable, Cloneable {
     @Override
     void close();
 
+    Context getContext();
+
     Object clone();
 }
