@@ -149,7 +149,7 @@ public class TestRegexTransformer extends AbstractDataImportHandlerTestCase {
     row.put("rowdata", s);
 
     IVariableResolver resolver = new VariableResolver();
-    resolver.addNamespace("e", row);
+    resolver = resolver.addNamespace("e", row);
     Map<String, String> eAttrs = createMap("name", "e");
     IContext context = getContext(null, resolver, null, IContext.FULL_DUMP, fields, eAttrs);
 

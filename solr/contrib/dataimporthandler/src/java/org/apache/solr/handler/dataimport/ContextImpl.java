@@ -72,6 +72,17 @@ public class ContextImpl extends Context {
     parent = parentContext;
   }
 
+  public ContextImpl(ContextImpl toCopy, IVariableResolver newResolver) {
+    this(toCopy.epw, newResolver, toCopy.ds, toCopy.currProcess, toCopy.globalSession,
+            toCopy.parent, toCopy.docBuilder);
+
+    this.requestParams = toCopy.requestParams;
+    this.dataImporter = toCopy.dataImporter;
+    this.entitySession = toCopy.entitySession;
+    this.lastException = toCopy.lastException;
+    this.doc = toCopy.doc;
+  }
+
   @Override
   public String getEntityAttribute(String name) {
     return epw==null || epw.getEntity() == null ? null : epw.getEntity().getAllAttributes().get(name);

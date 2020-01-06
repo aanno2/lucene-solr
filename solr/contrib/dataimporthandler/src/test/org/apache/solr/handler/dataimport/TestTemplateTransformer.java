@@ -59,7 +59,7 @@ public class TestTemplateTransformer extends AbstractDataImportHandlerTestCase {
             "mail", mails);
 
     IVariableResolver resolver = new VariableResolver();
-    resolver.addNamespace("e", row);
+    resolver = resolver.addNamespace("e", row);
     Map<String, String> entityAttrs = createMap("name", "e");
 
     IContext context = getContext(null, resolver,
@@ -93,7 +93,7 @@ public class TestTemplateTransformer extends AbstractDataImportHandlerTestCase {
                          "month", "Apr",
                          "day", "30" );
     IVariableResolver resolver = new VariableResolver();
-    resolver.addNamespace("e", row);
+    resolver = resolver.addNamespace("e", row);
     Map<String, String> entityAttrs = createMap("date", "e");
       
     IContext context = getContext(null, resolver,

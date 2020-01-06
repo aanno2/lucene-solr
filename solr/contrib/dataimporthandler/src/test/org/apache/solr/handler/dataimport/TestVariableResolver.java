@@ -45,7 +45,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
-    vri.addNamespace("hello", ns);
+    vri = vri.addNamespace("hello", ns);
     assertEquals("WORLD", vri.resolve("hello.world"));
   }
   
@@ -70,10 +70,10 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
-    vri.addNamespace("hello", ns);
+    vri = vri.addNamespace("hello", ns);
     ns = new HashMap<>();
     ns.put("world1", "WORLD1");
-    vri.addNamespace("hello.my", ns);
+    vri = vri.addNamespace("hello.my", ns);
     assertEquals("WORLD1", vri.resolve("hello.my.world1"));
   }
   
@@ -82,22 +82,22 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
-    vri.addNamespace("hello", ns);
+    vri = vri.addNamespace("hello", ns);
     ns = new HashMap<>();
     ns.put("world1", "WORLD1");
-    vri.addNamespace("hello.my.new", ns);
+    vri = vri.addNamespace("hello.my.new", ns);
     assertEquals("WORLD1", vri.resolve("hello.my.new.world1"));
   }
   
   @Test
   public void dateNamespaceWithValue() {
     IVariableResolver vri = new VariableResolver();
-    vri.setEvaluators(new DataImporter().getEvaluators(Collections
+    vri = vri.setEvaluators(new DataImporter().getEvaluators(Collections
         .<Map<String,String>> emptyList()));
     Map<String,Object> ns = new HashMap<>();
     Date d = new Date();
     ns.put("dt", d);
-    vri.addNamespace("A", ns);
+    vri = vri.addNamespace("A", ns);
     assertEquals(
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(d),
         vri.replaceTokens("${dataimporter.functions.formatDate(A.dt,'yyyy-MM-dd HH:mm:ss')}"));
@@ -106,7 +106,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
   @Test
   public void dateNamespaceWithExpr() throws Exception {
     IVariableResolver vri = new VariableResolver();
-    vri.setEvaluators(new DataImporter().getEvaluators(Collections
+    vri = vri.setEvaluators(new DataImporter().getEvaluators(Collections
         .<Map<String,String>> emptyList()));
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
     format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -124,7 +124,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
-    vri.addNamespace(null, ns);
+    vri = vri.addNamespace(null, ns);
     assertEquals("WORLD", vri.resolve("world"));
   }
   
@@ -133,7 +133,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     IVariableResolver vri = new VariableResolver();
     Map<String,Object> ns = new HashMap<>();
     ns.put("world", "WORLD");
-    vri.addNamespace(null, ns);
+    vri = vri.addNamespace(null, ns);
     assertEquals("WORLD", vri.resolve("world"));
   }
   
@@ -145,7 +145,7 @@ public class TestVariableResolver extends AbstractDataImportHandlerTestCase {
     m.put("name", "test");
     m.put("class", E.class.getName());
     l.add(m);
-    resolver.setEvaluators(new DataImporter().getEvaluators(l));
+    resolver = resolver.setEvaluators(new DataImporter().getEvaluators(l));
     ContextImpl context = new ContextImpl(null, resolver, null,
             IContext.FULL_DUMP, Collections.EMPTY_MAP, null, null);
     

@@ -167,7 +167,8 @@ public class TestJdbcDataSource extends AbstractDataImportHandlerTestCase {
     values.put("user", user);
     values.put("encryptKeyFile", createEncryptionKeyFile());
     values.put("password", encryptedPassword);
-    context.getVariableResolver().addNamespace(propsNamespace, values);
+    IVariableResolver newResolver = context.getVariableResolver().addNamespace(propsNamespace, values);
+    context = new ContextImpl((ContextImpl) context, newResolver);
 
     jdbcDataSource.init(context, props);
     Connection conn = jdbcDataSource.getConnection();
@@ -192,7 +193,8 @@ public class TestJdbcDataSource extends AbstractDataImportHandlerTestCase {
 
     Map<String,Object> values = new HashMap<>();
     values.put("bar", createEncryptionKeyFile());
-    context.getVariableResolver().addNamespace("foo", values);
+    IVariableResolver newResolver = context.getVariableResolver().addNamespace("foo", values);
+    context = new ContextImpl((ContextImpl) context, newResolver);
 
     jdbcDataSource.init(context, properties);
     jdbcDataSource.getConnection();

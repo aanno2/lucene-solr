@@ -25,16 +25,16 @@ public interface IVariableResolver {
      */
     String replaceTokens(String template);
 
-    void addNamespace(String name, Map<String, Object> newMap);
+    IVariableResolver addNamespace(String name, Map<String, Object> newMap);
 
     List<String> getVariables(String expr);
 
     CurrentLevel currentLevelMap(String[] keyParts,
                                  Map<String, Object> currentLevel, boolean includeLastLevel);
 
-    void removeNamespace(String name);
+    IVariableResolver removeNamespace(String name);
 
-    void setEvaluators(Map<String, Evaluator> evaluators);
+    IVariableResolver setEvaluators(Map<String, Evaluator> evaluators);
 
     public static class CurrentLevel {
       final Map<String,Object> map;

@@ -121,7 +121,7 @@ public class DocBuilder {
       } else {
         resolver = new VariableResolver();
       }
-      resolver.setEvaluators(dataImporter.getEvaluators());
+      resolver = resolver.setEvaluators(dataImporter.getEvaluators());
       Map<String, Object> indexerNamespace = new HashMap<>();
       if (persistedProperties.get(LAST_INDEX_TIME) != null) {
         indexerNamespace.put(LAST_INDEX_TIME, persistedProperties.get(LAST_INDEX_TIME));
@@ -143,8 +143,8 @@ public class DocBuilder {
         }
         indexerNamespace.put(entity.getName(), entityNamespace);
       }
-      resolver.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT, indexerNamespace);
-      resolver.addNamespace(ConfigNameConstants.IMPORTER_NS, indexerNamespace);
+      resolver = resolver.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT, indexerNamespace);
+      resolver = resolver.addNamespace(ConfigNameConstants.IMPORTER_NS, indexerNamespace);
       return resolver;
     } catch (Exception e) {
       wrapAndThrow(SEVERE, e);
@@ -363,7 +363,7 @@ public class DocBuilder {
     Iterator<Map<String, Object>> pkIter = allPks.iterator();
     while (pkIter.hasNext()) {
       Map<String, Object> map = pkIter.next();
-      vri.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT + ".delta", map);
+      vri = vri.addNamespace(ConfigNameConstants.IMPORTER_NS_SHORT + ".delta", map);
       buildDocument(vri, null, map, currentEntityProcessorWrapper, true, null);
       pkIter.remove();
       // check for abort
@@ -509,13 +509,13 @@ public class DocBuilder {
                         bsd.doc.addChildDocument(childDoc);
                       } else {
                         handleSpecialCommands(arow, bsd.doc);
-                        vr.addNamespace(entity.getName(), arow);
+                        vr = vr.addNamespace(entity.getName(), arow);
                         addFields(entity, bsd.doc, arow, vr);
-                        vr.removeNamespace(entity.getName());
+                        vr = vr.removeNamespace(entity.getName());
                       }
                     }
                     if (entity.getChildren() != null) {
-                      vr.addNamespace(entity.getName(), arow);
+                      vr = vr.addNamespace(entity.getName(), arow);
                       for (EntityProcessorWrapper child : bsd.epw.getChildren()) {
                         if (childDoc != null) {
                           buildDocument(vr, childDoc,
@@ -525,7 +525,7 @@ public class DocBuilder {
                                   child.getEntity().isDocRoot() ? pk : null, child, false, ctx, entitiesToDestroy);
                         }
                       }
-                      vr.removeNamespace(entity.getName());
+                      vr = vr.removeNamespace(entity.getName());
                     }
                     if (entity.isDocRoot()) {
                       if (stop.get()) {
@@ -898,16 +898,16 @@ public class DocBuilder {
       // identifying deleted rows with deltas
 
       for (Map<String, Object> row : myModifiedPks) {
-        resolver.addNamespace(epw.getEntity().getName(), row);
-        getModifiedParentRows(resolver, epw.getEntity().getName(), epw, parentKeyList);
+        resolver = resolver.addNamespace(epw.getEntity().getName(), row);
+        resolver = getModifiedParentRows(resolver, epw.getEntity().getName(), epw, parentKeyList);
         // check for abort
         if (stop.get())
           return new HashSet();
       }
       // running the same for deletedrows
       for (Map<String, Object> row : deletedSet) {
-        resolver.addNamespace(epw.getEntity().getName(), row);
-        getModifiedParentRows(resolver, epw.getEntity().getName(), epw, parentKeyList);
+        resolver = resolver.addNamespace(epw.getEntity().getName(), row);
+        resolver = getModifiedParentRows(resolver, epw.getEntity().getName(), epw, parentKeyList);
         // check for abort
         if (stop.get())
           return new HashSet();
@@ -922,7 +922,7 @@ public class DocBuilder {
         myModifiedPks : new HashSet<>(parentKeyList);
   }
 
-  private void getModifiedParentRows(IVariableResolver resolver,
+  private IVariableResolver getModifiedParentRows(IVariableResolver resolver,
                                      String entity, EntityProcessor entityProcessor,
                                      Set<Map<String, Object>> parentKeyList) {
     try {
@@ -936,12 +936,13 @@ public class DocBuilder {
         importStatistics.rowsCount.incrementAndGet();
         // check for abort
         if (stop.get())
-          return;
+          return resolver;
       }
 
     } finally {
-      resolver.removeNamespace(entity);
+      resolver = resolver.removeNamespace(entity);
     }
+    return resolver;
   }
 
   public void abort() {

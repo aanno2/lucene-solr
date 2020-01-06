@@ -82,7 +82,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
     Map<String,Object> m = new HashMap<>();
     m.put("b","B");
     IVariableResolver vr = new VariableResolver();
-    vr.addNamespace("a",m);
+    vr = vr.addNamespace("a",m);
     List<Object> l = (new Evaluator() {      
       @Override
       public String evaluate(String expression, IContext context) {
@@ -97,12 +97,12 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
 
   @Test
   public void testEscapeSolrQueryFunction() {
-    final IVariableResolver resolver = new VariableResolver();
+    IVariableResolver resolver = new VariableResolver();
     Map<String,Object> m= new HashMap<>();
     m.put("query","c:t");
-    resolver.setEvaluators(new DataImporter().getEvaluators(Collections.<Map<String,String>>emptyList()));
+    resolver = resolver.setEvaluators(new DataImporter().getEvaluators(Collections.<Map<String,String>>emptyList()));
     
-    resolver.addNamespace("e",m);
+    resolver = resolver.addNamespace("e",m);
     String s = resolver
             .replaceTokens("${dataimporter.functions.escapeQueryChars(e.query)}");
     org.junit.Assert.assertEquals("c\\:t", s);
@@ -150,7 +150,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
     Date d = new Date();    
     Map<String,Object> map = new HashMap<>();
     map.put("key", d);
-    resolver.addNamespace("A", map);
+    resolver = resolver.addNamespace("A", map);
         
     assertEquals(
         new SimpleDateFormat("yyyy-MM-dd HH:mm", rootLocale).format(d),
@@ -177,7 +177,7 @@ public class TestBuiltInEvaluators extends AbstractDataImportHandlerTestCase {
     for (Map.Entry<String, String> entry : tests.entrySet()) {
       Map<String, Object> values = new HashMap<>();
       values.put("key", entry.getKey());
-      resolver.addNamespace("A", values);
+      resolver = resolver.addNamespace("A", values);
 
       String expected = entry.getValue();
       String actual = evaluator.evaluate("A.key", ctx);

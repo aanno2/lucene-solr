@@ -273,7 +273,8 @@ public class XPathEntityProcessor extends EntityProcessorBase {
       Object val = context.getSessionAttribute(name, IContext.SCOPE_ENTITY);
       if (val != null) namespace.put(name, val);
     }
-    context.getVariableResolver().addNamespace(entityName, namespace);
+    IVariableResolver newResolver = context.getVariableResolver().addNamespace(entityName, namespace);
+    context = new ContextImpl((ContextImpl) context, newResolver);
   }
 
   private void addCommonFields(Map<String, Object> r) {

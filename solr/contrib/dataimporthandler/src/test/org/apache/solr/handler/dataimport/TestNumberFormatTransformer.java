@@ -67,7 +67,7 @@ public class TestNumberFormatTransformer extends AbstractDataImportHandlerTestCa
     Map<String, Object> row = createMap("inputs", inputs);
 
     IVariableResolver resolver = new VariableResolver();
-    resolver.addNamespace("e", row);
+    resolver = resolver.addNamespace("e", row);
 
     IContext context = getContext(null, resolver, null, IContext.FULL_DUMP, fields, null);
     new NumberFormatTransformer().transformRow(row, context);

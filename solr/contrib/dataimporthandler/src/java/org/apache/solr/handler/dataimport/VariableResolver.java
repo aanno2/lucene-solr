@@ -46,7 +46,10 @@ import static org.apache.solr.update.processor.TemplateUpdateProcessorFactory.Re
  * dih import.
  * </p>
  * <b>This API is experimental and may change in the future.</b>
- * 
+ *
+ * <p>
+ * Instances of VariableResolver are immutable.
+ * </p>
  * 
  * @since solr 1.3
  */
@@ -73,6 +76,13 @@ public class VariableResolver implements IVariableResolver {
   
   public VariableResolver(Map<String,Object> defaults) {
     rootNamespace = new HashMap<>(defaults);
+  }
+
+  VariableResolver(VariableResolver toCopy) {
+    this(toCopy.rootNamespace);
+    this.evaluators = new HashMap<>(toCopy.evaluators);
+    this.cache = toCopy.cache;
+    this.fun = toCopy.fun;
   }
   
   /**
@@ -145,8 +155,16 @@ public class VariableResolver implements IVariableResolver {
   public String replaceTokens(String template) {
     return TemplateUpdateProcessorFactory.replaceTokens(template, cache, fun, TemplateUpdateProcessorFactory.DOLLAR_BRACES_PLACEHOLDER_PATTERN);
   }
+
   @Override
-  public void addNamespace(String name, Map<String, Object> newMap) {
+  public IVariableResolver addNamespace(String name, Map<String, Object> newMap) {
+    VariableResolver result = new VariableResolver(this);
+    result._addNamespace(name, newMap);
+    return result;
+  }
+
+  // Modifying!
+  private void _addNamespace(String name, Map<String, Object> newMap) {
     if (newMap != null) {
       if (name != null) {
         String[] nameParts = DOT_PATTERN.split(name);
@@ -196,12 +214,16 @@ public class VariableResolver implements IVariableResolver {
   }
 
   @Override
-  public void removeNamespace(String name) {
-    rootNamespace.remove(name);
+  public IVariableResolver removeNamespace(String name) {
+    VariableResolver result = new VariableResolver(this);
+    result.rootNamespace.remove(name);
+    return result;
   }
   
   @Override
-  public void setEvaluators(Map<String, Evaluator> evaluators) {
-    this.evaluators = evaluators;
+  public IVariableResolver setEvaluators(Map<String, Evaluator> evaluators) {
+    VariableResolver result = new VariableResolver(this);
+    result.evaluators = evaluators;
+    return result;
   }
 }

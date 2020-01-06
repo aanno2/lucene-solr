@@ -35,9 +35,9 @@ public class TestURLDataSource extends AbstractDataImportHandlerTestCase {
   @Test
   public void substitutionsOnBaseUrl() throws Exception {
     String url = "http://example.com/";
-    
-    IVariableResolver.addNamespace("dataimporter.request", Collections.<String,Object>singletonMap("baseurl", url));
-    
+
+    IVariableResolver = IVariableResolver.addNamespace("dataimporter.request", Collections.<String,Object>singletonMap("baseurl", url));
+
     initProps.setProperty(URLDataSource.BASE_URL, "${dataimporter.request.baseurl}");
     dataSource.init(context, initProps);
     assertEquals(url, dataSource.getBaseUrl());

@@ -236,7 +236,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
         if (rows != null) {
           List<Map<String, Object>> tmpRows = new ArrayList<>();
           for (Map<String, Object> map : rows) {
-            resolver.addNamespace(entityName, map);
+            resolver = resolver.addNamespace(entityName, map);
             Object o = t.transformRow(map, context);
             if (o == null)
               continue;
@@ -252,7 +252,7 @@ public class EntityProcessorWrapper implements EntityProcessor {
           }
           rows = tmpRows;
         } else {
-          resolver.addNamespace(entityName, transformedRow);
+          resolver = resolver.addNamespace(entityName, transformedRow);
           Object o = t.transformRow(transformedRow, context);
           if (o == null)
             return null;
@@ -282,7 +282,6 @@ public class EntityProcessorWrapper implements EntityProcessor {
       rowcache = rows;
       return getFromRowCache();
     }
-
   }
 
   private boolean checkStopTransform(Map oMap) {
