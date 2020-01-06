@@ -50,7 +50,7 @@ import static org.apache.solr.update.processor.TemplateUpdateProcessorFactory.Re
  * 
  * @since solr 1.3
  */
-public class VariableResolver {
+public class VariableResolver implements IVariableResolver {
   
   private static final Pattern DOT_PATTERN = Pattern.compile("[.]");
   private static final Pattern EVALUATOR_FORMAT_PATTERN = Pattern
@@ -60,9 +60,6 @@ public class VariableResolver {
   private Cache<String,Resolved> cache = new MapBackedCache<>(new WeakHashMap<>());
   private Function<String,Object> fun = this::resolve;
 
-  public static final String FUNCTIONS_NAMESPACE = "dataimporter.functions.";
-  public static final String FUNCTIONS_NAMESPACE_SHORT = "dih.functions.";
-  
   public VariableResolver() {
     rootNamespace = new HashMap<>();
   }
@@ -85,6 +82,7 @@ public class VariableResolver {
    *          the String to be resolved
    * @return an Object which is the result of evaluation of given name
    */
+  @Override
   public Object resolve(String name) {
     Object r = null;
     if (name != null) {
@@ -117,8 +115,9 @@ public class VariableResolver {
     }
     return r == null ? "" : r;
   }
-  
-  private Object resolveEvaluator(String namespace, String name) {
+
+  @Override
+  public Object resolveEvaluator(String namespace, String name) {
     if (evaluators == null) {
       return "";
     }
@@ -136,16 +135,18 @@ public class VariableResolver {
       return "";
     }
   }
-  
+
   /**
    * Given a String with place holders, replace them with the value tokens.
    * 
    * @return the string with the placeholders replaced with their values
    */
+  @Override
   public String replaceTokens(String template) {
     return TemplateUpdateProcessorFactory.replaceTokens(template, cache, fun, TemplateUpdateProcessorFactory.DOLLAR_BRACES_PLACEHOLDER_PATTERN);
   }
-  public void addNamespace(String name, Map<String,Object> newMap) {
+  @Override
+  public void addNamespace(String name, Map<String, Object> newMap) {
     if (newMap != null) {
       if (name != null) {
         String[] nameParts = DOT_PATTERN.split(name);
@@ -163,21 +164,14 @@ public class VariableResolver {
     }
   }
 
+  @Override
   public List<String> getVariables(String expr) {
     return TemplateUpdateProcessorFactory.getVariables(expr, cache, TemplateUpdateProcessorFactory.DOLLAR_BRACES_PLACEHOLDER_PATTERN);
   }
 
-  static class CurrentLevel {
-    final Map<String,Object> map;
-    final int level;
-    CurrentLevel(int level, Map<String,Object> map) {
-      this.level = level;
-      this.map = map;
-    }   
-  }
-  
-  private CurrentLevel currentLevelMap(String[] keyParts,
-      Map<String,Object> currentLevel, boolean includeLastLevel) {
+  @Override
+  public CurrentLevel currentLevelMap(String[] keyParts,
+                                      Map<String, Object> currentLevel, boolean includeLastLevel) {
     int j = includeLastLevel ? keyParts.length : keyParts.length - 1;
     for (int i = 0; i < j; i++) {
       Object o = currentLevel.get(keyParts[i]);
@@ -200,12 +194,14 @@ public class VariableResolver {
     }
     return new CurrentLevel(j-1, currentLevel);
   }
-  
+
+  @Override
   public void removeNamespace(String name) {
     rootNamespace.remove(name);
   }
   
-  public void setEvaluators(Map<String,Evaluator> evaluators) {
+  @Override
+  public void setEvaluators(Map<String, Evaluator> evaluators) {
     this.evaluators = evaluators;
   }
 }
