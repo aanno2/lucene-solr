@@ -61,7 +61,7 @@ public class VariableResolver implements IVariableResolver {
   private Map<String,Object> rootNamespace;
   private Map<String,Evaluator> evaluators;
   private Cache<String,Resolved> cache = new MapBackedCache<>(new WeakHashMap<>());
-  private Function<String,Object> fun = this::resolve;
+  private final Function<String,Object> fun = this::resolve;
 
   public VariableResolver() {
     rootNamespace = new HashMap<>();
@@ -84,7 +84,7 @@ public class VariableResolver implements IVariableResolver {
       this.evaluators = new HashMap<>(toCopy.evaluators);
     }
     this.cache = toCopy.cache;
-    this.fun = toCopy.fun;
+    // this.fun = toCopy.fun;
   }
   
   /**
